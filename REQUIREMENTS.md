@@ -125,7 +125,7 @@ window.QUIZ_DATA = {
 - **M2.5 — Wheel composition:** decide 7 vs 14 wedges and add `animaux` + `arabe` to the wheel.
 - **M3 — Theme illustrations:** integrate user-provided pictures on wheel + badges.
 - **M4 — Image questions plumbing (DONE):** `index.html` now supports `image` + `optionImages` fields with conditional rendering and graceful fallback. Existing M1 questions unaffected. Visual prototype: `mock-questions.html`.
-- **M4.5 — Per-theme content rollout:** scale to 100 questions/theme + author images one theme at a time (Animaux first per the plan). All images from CC0 sources.
+- **M4.5 — Per-theme content rollout (DONE):** all 7 themes scaled from 15 → 100 questions = **700 questions total** (175 facile / 350 moyen / 175 difficile). 80 illustrative + 10 image-as-question + 10 image-options per theme. **792 / 910 images** fetched from French Wikipedia (87% coverage; misses fall back gracefully). Per-theme PowerShell scripts in `tools/fetch-<theme>.ps1` are idempotent and re-runnable.
 - **M5 — Audio questions + read-aloud:** support `type: 'audio'` and optional TTS for text questions.
 - **M6 — "Funny" pass:** sound effects, mascot, blagues — scope decided once we agree on the funny direction.
 - **M7 — Progression:** stickers / streaks / per-theme best scores in `localStorage`.

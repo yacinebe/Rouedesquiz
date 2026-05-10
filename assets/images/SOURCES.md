@@ -23,12 +23,16 @@ exponential backoff on HTTP 429 to respect Wikipedia's rate limits.
 
 ## Theme status
 
-| Theme       | Images | Status      |
-|-------------|-------:|-------------|
-| animaux     |    130 | ✅ fetched   |
-| math        |      0 | pending      |
-| lecture     |      0 | pending      |
-| geographie  |      0 | pending      |
-| astronomie  |      0 | pending      |
-| arabe       |      0 | pending      |
-| surprise    |      0 | pending      |
+| Theme       | Hits | Misses | Notes |
+|-------------|-----:|-------:|-------|
+| animaux     |  130 |      0 | All clean |
+| astronomie  |  126 |      4 | Misses: meteore, big bang, plongeur, generic planète |
+| geographie  |  126 |      4 | Misses: france carte, rabat, ocean arctique |
+| arabe       |  106 |     24 | Misses: numbers (chiffre deux/trois/...), greetings |
+| surprise    |  117 |     13 | Misses: a few Disney characters, abstract concepts |
+| lecture     |   90 |     40 | Heavy misses: alphabet, voyelle/consonne, accents |
+| math        |   97 |     33 | Misses: most "chiffre N" searches, multiplication illustration |
+| **Total**   | **792** | **118** | (out of 910 image slots — ~87% coverage) |
+
+Misses fall back gracefully — the question still renders without an image.
+Replacement strategy for future iteration: hand-pick CC0 photos for the high-miss themes.
