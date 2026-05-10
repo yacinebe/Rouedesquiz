@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock — Variantes de cartes question</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:   #1a1a2e;
+    --card: #16213e;
+    --text: #f0f0f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+
+  /* Starfield (same as main app) */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 720px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 48px;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    text-align: center;
+    background: linear-gradient(135deg, #FF6B6B, #C084FC, #60AFFF, #4ECDC4, #FFE66D);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(192,132,252,0.4));
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    text-align: center; opacity: 0.6; font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  .variant-block { display: flex; flex-direction: column; gap: 14px; }
+
+  .variant-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: #C084FC;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .variant-label .num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(192,132,252,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+  }
+  .variant-label .desc { opacity: 0.7; font-family: 'Nunito'; font-weight: 700; font-size: 0.85rem; }
+
+  /* ── QUESTION CARD (matches index.html) ── */
+  .question-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+
+  .question-image-wrap {
+    margin: 0 auto 18px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .question-image-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .question-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.5;
+    margin-bottom: 10px;
+  }
+
+  .question-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.2rem, 4vw, 1.6rem);
+    line-height: 1.3;
+    margin-bottom: 24px;
+  }
+
+  /* ── Text-option choices (existing) ── */
+  .choices { display: flex; flex-direction: column; gap: 12px; }
+
+  .choice-btn {
+    background: rgba(255,255,255,0.07);
+    border: 2px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s, border-color 0.18s, transform 0.12s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .choice-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.14);
+    transform: translateX(4px);
+  }
+  .choice-btn:disabled { cursor: not-allowed; }
+  .choice-btn.correct {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: #4ade80;
+    color: #4ade80;
+  }
+  .choice-btn.wrong {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+    color: #f87171;
+  }
+  .choice-letter {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Image-option grid (NEW) ── */
+  .choices.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .choice-btn.img {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 8px;
+    gap: 0;
+    transform: none !important;
+  }
+  .choice-btn.img:hover:not(:disabled) {
+    background: rgba(255,255,255,0.14);
+    transform: translateY(-2px) !important;
+  }
+  .choice-btn.img .img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .choice-btn.img .img-wrap img,
+  .choice-btn.img .img-wrap svg {
+    width: 70%; height: 70%; object-fit: contain;
+  }
+  .choice-btn.img .cap {
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding-bottom: 6px;
+  }
+
+  /* ── Feedback (same as index.html) ── */
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.correct { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .feedback.wrong   { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  .reset-btn {
+    margin-top: 10px;
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.5);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    align-self: flex-end;
+    font-family: 'Nunito';
+  }
+  .reset-btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+  .placeholder-note {
+    font-size: 0.72rem;
+    opacity: 0.45;
+    text-align: center;
+    margin-top: 6px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div>
+    <h1>🎨 Mock — Variantes de cartes</h1>
+    <div class="subtitle">Aperçu visuel des 4 formats de question avant intégration dans <code>index.html</code>.</div>
+  </div>
+
+  <!-- ══════════════ VARIANT 1: Pure text ══════════════ -->
+  <div class="variant-block">
+    <div class="variant-label">
+      <span class="num">1</span> Texte seul
+      <span class="desc">— format M1 actuel, comme contrôle</span>
+    </div>
+    <div class="question-card" id="card1">
+      <div class="question-num">Question d'exemple</div>
+      <div class="question-text">Combien font 5 + 7 ?</div>
+      <div class="choices" id="choices1"></div>
+      <div class="feedback" id="feedback1"></div>
+      <button class="reset-btn" onclick="resetCard(1)">↻ Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ VARIANT 2: Illustrated text ══════════════ -->
+  <div class="variant-block">
+    <div class="variant-label">
+      <span class="num">2</span> Question texte + illustration
+      <span class="desc">— les 80 questions « illustrées » par thème</span>
+    </div>
+    <div class="question-card" id="card2">
+      <div class="question-image-wrap">
+        <img src="https://picsum.photos/seed/animaux-girafe/600/450" alt="" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="question-num">Question d'exemple — Animaux</div>
+      <div class="question-text">Quel animal a un très long cou ?</div>
+      <div class="choices" id="choices2"></div>
+      <div class="feedback" id="feedback2"></div>
+      <div class="placeholder-note">image placeholder (picsum) — la vraie sera une photo CC0 de girafe</div>
+      <button class="reset-btn" onclick="resetCard(2)">↻ Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ VARIANT 3: Image-as-question ══════════════ -->
+  <div class="variant-block">
+    <div class="variant-label">
+      <span class="num">3</span> Image-question
+      <span class="desc">— l'image EST la question, ~10 par thème</span>
+    </div>
+    <div class="question-card" id="card3">
+      <div class="question-image-wrap">
+        <img src="https://picsum.photos/seed/giraffe-photo/600/450" alt="" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="question-num">Question d'exemple — Animaux</div>
+      <div class="question-text">Quel animal ?</div>
+      <div class="choices" id="choices3"></div>
+      <div class="feedback" id="feedback3"></div>
+      <div class="placeholder-note">image placeholder — la vraie sera la photo qui répond seule à la question</div>
+      <button class="reset-btn" onclick="resetCard(3)">↻ Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ VARIANT 4: Image-options grid ══════════════ -->
+  <div class="variant-block">
+    <div class="variant-label">
+      <span class="num">4</span> Options images (grille 2×2)
+      <span class="desc">— ~10 par thème, ex. « Clique sur le triangle »</span>
+    </div>
+    <div class="question-card" id="card4">
+      <div class="question-num">Question d'exemple — Lecture</div>
+      <div class="question-text">Clique sur le triangle.</div>
+      <div class="choices grid" id="choices4"></div>
+      <div class="feedback" id="feedback4"></div>
+      <div class="placeholder-note">SVG inline pour la démo — en prod, ce seront des images CC0</div>
+      <button class="reset-btn" onclick="resetCard(4)">↻ Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LETTERS = ['A', 'B', 'C', 'D'];
+
+// SVG placeholders for variant 4
+const SVG = {
+  triangle: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,10 90,85 10,85" fill="#FF6B6B"/></svg>',
+  circle:   '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="#4ECDC4"/></svg>',
+  square:   '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="15" width="70" height="70" rx="6" fill="#FFE66D"/></svg>',
+  star:     '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,10 61,38 92,40 67,60 76,90 50,73 24,90 33,60 8,40 39,38" fill="#C084FC"/></svg>',
+};
+
+const CARDS = {
+  1: {
+    type: 'text',
+    options: ['10', '11', '12', '13'],
+    answer: '12',
+  },
+  2: {
+    type: 'text',
+    options: ['Lion', 'Girafe', 'Tigre', 'Singe'],
+    answer: 'Girafe',
+  },
+  3: {
+    type: 'text',
+    options: ['Éléphant', 'Girafe', 'Tigre', 'Lion'],
+    answer: 'Girafe',
+  },
+  4: {
+    type: 'image-options',
+    options: ['Triangle', 'Cercle', 'Carré', 'Étoile'],
+    optionSvg: ['triangle', 'circle', 'square', 'star'],
+    answer: 'Triangle',
+  },
+};
+
+function renderCard(num) {
+  const card = CARDS[num];
+  const choicesEl = document.getElementById('choices' + num);
+  const feedbackEl = document.getElementById('feedback' + num);
+
+  choicesEl.innerHTML = '';
+  feedbackEl.className = 'feedback';
+  feedbackEl.textContent = '';
+
+  if (card.type === 'image-options') {
+    choicesEl.classList.add('grid');
+    card.options.forEach((label, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn img';
+      btn.innerHTML =
+        `<div class="img-wrap">${SVG[card.optionSvg[i]]}</div>` +
+        `<span class="cap">${label}</span>`;
+      btn.onclick = () => selectAnswer(num, i);
+      choicesEl.appendChild(btn);
+    });
+  } else {
+    choicesEl.classList.remove('grid');
+    card.options.forEach((label, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerHTML = `<span class="choice-letter">${LETTERS[i]}</span>${label}`;
+      btn.onclick = () => selectAnswer(num, i);
+      choicesEl.appendChild(btn);
+    });
+  }
+}
+
+function selectAnswer(num, chosenIdx) {
+  const card = CARDS[num];
+  const correctIdx = card.options.indexOf(card.answer);
+  const btns = document.querySelectorAll(`#choices${num} .choice-btn`);
+
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correctIdx) btn.classList.add('correct');
+    else if (i === chosenIdx) btn.classList.add('wrong');
+  });
+
+  const isCorrect = chosenIdx === correctIdx;
+  const feedbackEl = document.getElementById('feedback' + num);
+  feedbackEl.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  feedbackEl.textContent = isCorrect
+    ? '✅ Bravo, c\'est la bonne réponse !'
+    : `❌ La bonne réponse était : ${card.answer}`;
+}
+
+function resetCard(num) {
+  renderCard(num);
+}
+
+// Init all cards
+[1, 2, 3, 4].forEach(renderCard);
+</script>
+</body>
+</html>
