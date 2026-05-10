@@ -68,16 +68,24 @@ QuizRoulette/
 
 ```js
 {
+  id: 'animaux-001',                      // OPTIONAL: stable filename-safe ID, decouples image paths from question text
   difficulty: 1,                          // 1 = Facile, 2 = Moyen, 3 = Difficile
   question: 'Combien font 5 + 7 ?',
   options: ['10', '11', '12', '13'],
-  answer: '12'                            // string match against options[i]
+  answer: '12',                           // string match against options[i]
+  image: 'assets/images/math/math-001.webp',  // OPTIONAL: illustration above question OR image-as-question
+  optionImages: null,                     // OPTIONAL: ['a.webp','b.webp','c.webp','d.webp'] → renders as 2×2 image grid; `options` strings still required as captions/answer keys
   // future fields:
-  // type: 'image' | 'audio',             // text is implicit/default
-  // image: 'assets/images/math/sum-001.png',
   // audio: 'assets/audio/math/sum-001.mp3',
 }
 ```
+
+**Layout inferred from fields (no `type` field):**
+- `optionImages` set → 2×2 image grid for answers
+- `image` set + no `optionImages` → image above text question (illustration or image-as-question)
+- Neither set → text-only (M1 baseline)
+
+**Failure modes:** missing image files fail silently via `onerror` — image element hides, question still renders.
 
 Top-level structure:
 
@@ -116,7 +124,8 @@ window.QUIZ_DATA = {
 - **M2 — Difficulty UX:** level selector, filter questions by level. **Blocked on content:** most themes have ~all questions at level 2; need level 1 and level 3 banks filled out before this is useful.
 - **M2.5 — Wheel composition:** decide 7 vs 14 wedges and add `animaux` + `arabe` to the wheel.
 - **M3 — Theme illustrations:** integrate user-provided pictures on wheel + badges.
-- **M4 — Image questions:** support `type: 'image'`.
+- **M4 — Image questions plumbing (DONE):** `index.html` now supports `image` + `optionImages` fields with conditional rendering and graceful fallback. Existing M1 questions unaffected. Visual prototype: `mock-questions.html`.
+- **M4.5 — Per-theme content rollout:** scale to 100 questions/theme + author images one theme at a time (Animaux first per the plan). All images from CC0 sources.
 - **M5 — Audio questions + read-aloud:** support `type: 'audio'` and optional TTS for text questions.
 - **M6 — "Funny" pass:** sound effects, mascot, blagues — scope decided once we agree on the funny direction.
 - **M7 — Progression:** stickers / streaks / per-theme best scores in `localStorage`.

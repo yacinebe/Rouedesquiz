@@ -323,6 +323,58 @@
     flex-shrink: 0;
   }
 
+  /* Question image (illustration or image-as-question) */
+  .question-image-wrap {
+    margin: 0 auto 18px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .question-image-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Image-options grid (2×2) */
+  .choices.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .choice-btn.img {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 8px;
+    gap: 0;
+  }
+  .choice-btn.img:hover:not(:disabled) {
+    background: rgba(255,255,255,0.14);
+    transform: translateY(-2px);
+  }
+  .choice-btn.img .img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .choice-btn.img .img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .choice-btn.img .cap {
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding-bottom: 6px;
+  }
+
   /* Feedback bar */
   .feedback {
     margin-top: 18px;
@@ -446,6 +498,7 @@
   <div class="progress-dots" id="progressDots"></div>
 
   <div class="question-card" id="questionCard">
+    <div class="question-image-wrap" id="questionImageWrap" style="display:none;"></div>
     <div class="question-num" id="questionNum"></div>
     <div class="question-text" id="questionText"></div>
     <div class="choices" id="choices"></div>
@@ -632,6 +685,16 @@ function renderQuestion() {
   document.getElementById('questionNum').textContent = `Question ${quizIndex + 1} sur ${total}`;
   document.getElementById('questionText').textContent = q.question;
 
+  // Question image (optional — illustration or image-as-question)
+  const imgWrap = document.getElementById('questionImageWrap');
+  if (q.image) {
+    imgWrap.innerHTML = `<img src="${q.image}" alt="" onerror="this.parentElement.style.display='none'">`;
+    imgWrap.style.display = '';
+  } else {
+    imgWrap.innerHTML = '';
+    imgWrap.style.display = 'none';
+  }
+
   // Progress dots
   const dots = document.getElementById('progressDots');
   dots.innerHTML = '';
@@ -641,16 +704,30 @@ function renderQuestion() {
     dots.appendChild(d);
   }
 
-  // Choices
+  // Choices — image grid if optionImages set, otherwise text buttons
   const choicesEl = document.getElementById('choices');
   choicesEl.innerHTML = '';
-  q.options.forEach((c, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'choice-btn';
-    btn.innerHTML = `<span class="choice-letter">${letters[i]}</span>${c}`;
-    btn.onclick = () => selectAnswer(i);
-    choicesEl.appendChild(btn);
-  });
+  if (q.optionImages) {
+    choicesEl.classList.add('grid');
+    q.optionImages.forEach((src, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn img';
+      btn.innerHTML =
+        `<div class="img-wrap"><img src="${src}" alt="${q.options[i]}" onerror="this.style.display='none'"></div>` +
+        `<span class="cap">${q.options[i]}</span>`;
+      btn.onclick = () => selectAnswer(i);
+      choicesEl.appendChild(btn);
+    });
+  } else {
+    choicesEl.classList.remove('grid');
+    q.options.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerHTML = `<span class="choice-letter">${letters[i]}</span>${c}`;
+      btn.onclick = () => selectAnswer(i);
+      choicesEl.appendChild(btn);
+    });
+  }
 
   // Reset feedback & next
   const fb = document.getElementById('feedback');
@@ -691,6 +768,10 @@ function selectAnswer(chosen) {
   // Update current dot
   const dots = document.getElementById('progressDots');
   dots.children[quizIndex].className = 'dot ' + (isCorrect ? 'done' : 'wrong');
+
+  // Preload next question's image (if any) — silent on failure
+  const next = quizQuestions[quizIndex + 1];
+  if (next && next.image) new Image().src = next.image;
 
   document.getElementById('nextBtn').classList.add('show');
 }
