@@ -620,6 +620,23 @@ function spin() {
   requestAnimationFrame(frame);
 }
 
+// Click directly on a slice to select it (skips the spin animation)
+canvas.addEventListener('click', (e) => {
+  if (spinning) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width  / rect.width);
+  const y = (e.clientY - rect.top)  * (canvas.height / rect.height);
+  const dx = x - CX, dy = y - CY;
+  const dist = Math.hypot(dx, dy);
+  // Outside wheel rim or inside the central hub (where the spin button sits) → ignore
+  if (dist > R || dist < 36) return;
+  const clickAngle = Math.atan2(dy, dx);
+  const normalized = (((clickAngle - currentAngle) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const idx = Math.floor(normalized / ARC) % N;
+  currentSeg = segments[idx];
+  showWheelResult(currentSeg);
+});
+
 function showWheelResult(seg) {
   document.getElementById('resultArea').innerHTML = `
     <div class="result-card ${seg.cls}">
