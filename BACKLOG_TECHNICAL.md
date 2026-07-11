@@ -15,10 +15,10 @@ Under-the-hood: architecture, tooling, asset pipeline, deploy, refactors, tech d
 |----|-------------------|:----:|:--------:|-----------|:------:|
 | T-01 | **Delete / archive the twin repo** — `yacinebe/rouedesquizz` (double-z) is a stale duplicate that made Vercel deploy old code. Remove it. 2-min cleanup. | S | High | — | Todo |
 | T-02 | **Centralize the image base URL** — `questions.js` hard-codes 910 absolute CDN URLs; store the base once so switching hosts / local fallback is one line. | M | High | — | Todo |
-| T-03 | **Backend + API (the pivot)** — ~~introduce a server/API~~ **Supabase** (Postgres + auth + RLS); browser talks to it directly, no server code. Keystone that unblocks accounts, progress, and later generation. *(idea #5)* | XL | High | strategic decision | In progress |
+| T-03 | **Backend + API (the pivot)** — ~~introduce a server/API~~ **Supabase** (Postgres + auth + RLS); browser talks to it directly, no server code. Keystone that unblocks accounts, progress, and later generation. Shipped + deployed. *(idea #5)* | XL | High | strategic decision | Done |
 | T-04 | **Choose hosting platform** — ✅ **Decided:** front-end stays on Vercel, data/auth on **Supabase** (free tier; $0 ongoing at family scale). Provisioned via Vercel Marketplace (`supabase-cerulean-flame`). *(idea #6)* | S | High | T-03 | Done |
 | T-05 | **Accounts & identity (auth)** — **anonymous auth + per-child profiles shipped** (device-scoped, upgradeable to real accounts later for cross-device sync). *(idea #2 base)* | L | High | T-03 | In progress |
-| T-07 | **LLM content safety & human review** — ⚠️ validate correctness + a parent-approval/block path before generated content reaches a 5-year-old. Non-negotiable if F-20 ships. *(my idea X-b)* | L | High | F-20 | Todo |
+| T-07 | **LLM content safety & human review** — ⚠️ validate correctness + a parent-approval/block path before generated content reaches a 5-year-old. Non-negotiable prerequisite for F-20. *(my idea X-b)* | L | High | T-08 | Todo |
 | T-08 | **LLM generation engine + cost control & caching** — generate questions/images via LLM (the machinery behind F-20); generate → validate → cache into a bank rather than calling the model every play. Keeps cost/latency low, preserves offline fallback. *(idea #1 engine + my idea X-c)* | L | High | T-03 | Todo |
 | T-09 | **Open-answer grading service** — judge free-form answers (fuzzy "douze"≈"12" or LLM judge). Shared by voice answering & advanced mode. *(my idea X-d)* | M | Med | T-03 | Todo |
 | T-10 | **Speech-to-text integration** — cloud STT for spoken answers (browser STT is online-only & weak in FR). *(supports #4)* | M | Med | T-03 | Todo |
@@ -30,6 +30,7 @@ Under-the-hood: architecture, tooling, asset pipeline, deploy, refactors, tech d
 | T-16 | **Convert images to WebP** — smaller payloads / faster loads; cheap once T-02 lands. | M | Low | T-02 | Todo |
 | T-17 | **One-file vs per-theme question files** — split `questions.js` as it grows (moot if content moves to a DB). | S | Low | — | Todo |
 | T-18 | **vercel.json cache headers** — long-cache immutable assets, no-cache HTML (only if front-end stays on Vercel). | S | Low | — | Todo |
+| T-19 | **Retire `questions.js` — single source of truth** — the DB is now a cache seeded from `questions.js`; two copies of the content is undesirable. Once the DB is authoritative (an authoring path that isn't this file) and offline/`file://` play is dropped or served another way, delete the static bank + its fallback in `index.html`. *(user: dislikes dual source of truth)* | M | Med | authoring path (T-08 / admin UI) + offline decision | Todo |
 
 > **Superseded / folded:** the old "authoring/admin page" idea is absorbed by T-06 (generation) + T-07 (review UI). `T-02` (missing-image upload) is folded into F-08 / T-06.
 

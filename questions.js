@@ -3,6 +3,15 @@
    Exposed as window.QUIZ_DATA so it can be loaded
    via <script src="questions.js"> from both
    file:// (local) and Vercel (https) without fetch.
+
+   ROLE (v2): authoring source of truth + offline fallback.
+   - The Supabase `questions` table is a CACHE seeded from this
+     file (tools/migrate-questions-to-db.js). Edit questions here,
+     then re-run the seed to sync the DB.
+   - index.html loads questions DB-first and falls back to this
+     bank when offline or when opened via file://.
+   - The dual source is temporary — see backlog T-19 (retire this
+     file once the DB is the single source of truth).
 ═══════════════════════════════════════════════ */
 window.QUIZ_DATA = {
   metadata: {
