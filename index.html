@@ -57,6 +57,22 @@
   }
   .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
+  /* ── PROFILE SCREEN ── */
+  #profileScreen { gap: 22px; padding: 24px; text-align: center; }
+  .profile-title { font-family: 'Fredoka One', cursive; font-size: 1.9rem; }
+  .profile-list { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 520px; }
+  .profile-btn {
+    padding: 16px 22px; border-radius: 22px;
+    border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08);
+    color: #fff; font-family: 'Fredoka One', cursive; font-size: 1.05rem; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 108px;
+    transition: transform .15s, background .2s;
+  }
+  .profile-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.16); }
+  .profile-btn .avatar { font-size: 2.1rem; line-height: 1; }
+  .profile-btn.add { border-style: dashed; background: transparent; }
+  .profile-hint { opacity: .6; font-size: .95rem; }
+
   /* ── WHEEL SCREEN ── */
   #wheelScreen { gap: 22px; padding: 24px; }
 
@@ -463,8 +479,21 @@
 </head>
 <body>
 
+<!-- ══════════════ PROFILE SCREEN ══════════════ -->
+<div id="profileScreen" class="screen active">
+  <div class="profile-title">Qui joue ? 🎈</div>
+  <div class="profile-list" id="profileList">
+    <!-- Fallback if the Supabase module can't load (e.g. opened via file://).
+         Replaced by real profiles when the module initializes. -->
+    <button class="profile-btn add" onclick="showScreen('wheelScreen')">
+      <span class="avatar">🎮</span><span>Jouer</span>
+    </button>
+  </div>
+  <div class="profile-hint" id="profileHint"></div>
+</div>
+
 <!-- ══════════════ WHEEL SCREEN ══════════════ -->
-<div id="wheelScreen" class="screen active">
+<div id="wheelScreen" class="screen">
   <h1>🎡 La Roue des Quiz !</h1>
 
   <div class="wheel-section">
@@ -674,9 +703,21 @@ let quizIndex = 0;
 let score = 0;
 let answered = false;
 
-function startQuiz() {
+async function startQuiz() {
   if (!currentSeg) return;
-  const pool = (window.QUIZ_DATA && window.QUIZ_DATA[currentSeg.cls]) || [];
+  // DB first (Supabase), fall back to the static questions.js bank (offline-safe).
+  let pool = [];
+  if (window.QuizDB && window.QuizDB.fetchQuestions) {
+    pool = await window.QuizDB.fetchQuestions(currentSeg.cls);
+  }
+  if (!pool || pool.length === 0) {
+    pool = (window.QUIZ_DATA && window.QUIZ_DATA[currentSeg.cls]) || [];
+  }
+  if (!pool || pool.length === 0) {
+    document.getElementById('resultArea').innerHTML =
+      `<div class="result-card ${currentSeg.cls}"><div class="rc-top"><span>Aucune question pour ce thème 😅</span></div></div>`;
+    return;
+  }
   quizQuestions = shuffle([...pool]);
   quizIndex = 0;
   score = 0;
@@ -778,6 +819,17 @@ function selectAnswer(chosen) {
   const isCorrect = chosen === correctIdx;
   if (isCorrect) score++;
 
+  // Record the attempt (fire-and-forget; never blocks the game)
+  if (window.QuizDB && window.QuizDB.logAttempt) {
+    window.QuizDB.logAttempt({
+      profile_id: window.QuizDB.getProfileId(),
+      question_id: q.db_id || null,
+      theme: currentSeg.cls,
+      difficulty: q.difficulty ?? null,
+      is_correct: isCorrect
+    });
+  }
+
   const fb = document.getElementById('feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
   fb.textContent = isCorrect ? '✅ Bravo, c\'est la bonne réponse !' : `❌ La bonne réponse était : ${q.answer}`;
@@ -817,6 +869,17 @@ function showScore() {
 
   showScreen('scoreScreen');
   launchConfetti(currentSeg.color);
+
+  // Persist the session, then show this player's record for the theme.
+  (async () => {
+    const pid = window.QuizDB && window.QuizDB.getProfileId();
+    if (!pid || !window.QuizDB.logSession) return;
+    const theme = currentSeg.cls, label = currentSeg.label;
+    await window.QuizDB.logSession({ profile_id: pid, theme, score, total });
+    const best = await window.QuizDB.getBestScores(pid);
+    const b = best[theme];
+    if (b) document.getElementById('scoreSub').textContent = `en ${label} · 🌟 record ${b.best}/${b.total}`;
+  })();
 }
 
 function replayCategory() {
@@ -848,6 +911,75 @@ function shuffle(arr) {
 
 // Init
 drawWheel(0);
+</script>
+
+<!-- Supabase: anonymous auth, profile picker, progress helpers (ES module) -->
+<script type="module">
+import {
+  ensureSession, getProfiles, createProfile,
+  logAttempt, logSession, fetchQuestions, getBestScores
+} from './assets/js/db.js';
+
+const STORAGE_KEY = 'qr_profile_id';
+let selectedProfileId = localStorage.getItem(STORAGE_KEY) || null;
+
+// Bits the classic game script calls (see selectAnswer / showScore / startQuiz).
+window.QuizDB = {
+  logAttempt, logSession, fetchQuestions, getBestScores,
+  getProfileId: () => selectedProfileId
+};
+
+const AVATARS = ['🦊','🐼','🦁','🐸','🦄','🐙','🐝','🐧','🦉','🐢','🐰','🐨'];
+const randomAvatar = () => AVATARS[Math.floor(Math.random() * AVATARS.length)];
+
+function selectProfile(id) {
+  selectedProfileId = id;
+  if (id) localStorage.setItem(STORAGE_KEY, id);
+  else localStorage.removeItem(STORAGE_KEY);
+  window.showScreen('wheelScreen');
+}
+
+async function renderProfiles() {
+  const listEl = document.getElementById('profileList');
+  const hintEl = document.getElementById('profileHint');
+  listEl.innerHTML = '';
+
+  const profiles = await getProfiles();
+  for (const p of profiles) {
+    const btn = document.createElement('button');
+    btn.className = 'profile-btn';
+    btn.innerHTML = `<span class="avatar">${p.avatar || '🙂'}</span><span>${p.name}</span>`;
+    btn.onclick = () => selectProfile(p.id);
+    listEl.appendChild(btn);
+  }
+
+  const add = document.createElement('button');
+  add.className = 'profile-btn add';
+  add.innerHTML = `<span class="avatar">➕</span><span>Nouveau</span>`;
+  add.onclick = async () => {
+    const name = (prompt('Prénom du joueur ?') || '').trim();
+    if (!name) return;
+    const created = await createProfile(name, randomAvatar());
+    if (created) selectProfile(created.id);
+    else alert("Impossible de créer le profil (hors ligne ?).");
+  };
+  listEl.appendChild(add);
+
+  const guest = document.createElement('button');
+  guest.className = 'profile-btn add';
+  guest.innerHTML = `<span class="avatar">🎮</span><span>Sans profil</span>`;
+  guest.onclick = () => selectProfile(null);
+  listEl.appendChild(guest);
+
+  hintEl.textContent = profiles.length
+    ? 'Touche ton personnage pour jouer.'
+    : 'Crée un joueur, ou joue sans profil.';
+}
+
+(async () => {
+  await ensureSession();
+  await renderProfiles();
+})();
 </script>
 </body>
 </html>
