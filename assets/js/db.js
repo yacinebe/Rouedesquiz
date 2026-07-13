@@ -175,3 +175,63 @@ export async function getBestScores(profile_id) {
     return {};
   }
 }
+
+// Per-theme progress for a profile, computed from the attempts log.
+// Returns { byTheme: { theme: {answered, correct, failed} },
+//           failed:  { theme: [question_id, ...] } }  (failed = latest attempt wrong)
+export async function getProgress(profile_id) {
+  const empty = { byTheme: {}, failed: {} };
+  if (!profile_id) return empty;
+  try {
+    const { data, error } = await supabase
+      .from('attempts')
+      .select('theme, is_correct, question_id, answered_at')
+      .eq('profile_id', profile_id)
+      .order('answered_at', { ascending: true });
+    if (error) throw error;
+
+    const byTheme = {};
+    const latest = {}; // question_id -> { theme, correct } for the most recent attempt
+    for (const a of data ?? []) {
+      const t = byTheme[a.theme] || (byTheme[a.theme] = { answered: 0, correct: 0, failed: 0 });
+      t.answered++;
+      if (a.is_correct) t.correct++;
+      if (a.question_id) latest[a.question_id] = { theme: a.theme, correct: a.is_correct };
+    }
+    const failed = {};
+    for (const [qid, info] of Object.entries(latest)) {
+      if (!info.correct) (failed[info.theme] || (failed[info.theme] = [])).push(qid);
+    }
+    for (const theme of Object.keys(byTheme)) byTheme[theme].failed = (failed[theme] || []).length;
+    return { byTheme, failed };
+  } catch (e) {
+    console.warn('[db] getProgress failed:', e);
+    return empty;
+  }
+}
+
+// Load specific questions by id (for the "revise your mistakes" replay).
+export async function fetchQuestionsByIds(ids) {
+  if (!ids || !ids.length) return [];
+  try {
+    const { data, error } = await supabase
+      .from('questions')
+      .select('id, difficulty, question, options, answer, image, option_images, legacy_id, theme')
+      .in('id', ids);
+    if (error) throw error;
+    return (data ?? []).map(row => ({
+      id: row.legacy_id ?? row.id,
+      db_id: row.id,
+      difficulty: row.difficulty,
+      question: row.question,
+      options: row.options,
+      answer: row.answer,
+      image: row.image ?? undefined,
+      optionImages: row.option_images ?? undefined,
+      theme: row.theme
+    }));
+  } catch (e) {
+    console.warn('[db] fetchQuestionsByIds failed:', e);
+    return [];
+  }
+}

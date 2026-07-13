@@ -123,7 +123,20 @@
     backdrop-filter: blur(6px); color: #fff; font-family: 'Fredoka One', cursive; font-size: .92rem;
   }
   .current-player .cp-avatar { font-size: 1.4rem; line-height: 1; }
+  .current-player .cp-text { display: flex; flex-direction: column; line-height: 1.15; }
+  .current-player .cp-score { font-size: .72rem; opacity: .85; font-family: 'Nunito', sans-serif; }
   .current-player .cp-switch { font-size: .68rem; opacity: .6; font-family: 'Nunito', sans-serif; }
+
+  /* ── PROGRESS PAGE ── */
+  #progressScreen { justify-content: flex-start; padding: 18px 16px 60px; gap: 14px; }
+  .progress-body { width: min(560px, 94vw); display: flex; flex-direction: column; gap: 12px; }
+  .prog-card { background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; text-align: left; }
+  .prog-head { display: flex; align-items: center; gap: 10px; font-family: 'Fredoka One', cursive; font-size: 1.1rem; }
+  .prog-emoji { font-size: 1.5rem; }
+  .prog-stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 10px; font-family: 'Nunito', sans-serif; font-size: .92rem; opacity: .85; }
+  .prog-stats b { font-family: 'Fredoka One', cursive; opacity: 1; }
+  .prog-replay { padding: 9px 18px; font-size: .95rem; }
+  .prog-done { font-family: 'Nunito', sans-serif; font-size: .88rem; opacity: .6; }
 
   /* ── WHEEL SCREEN ── */
   #wheelScreen { gap: 22px; padding: 24px; }
@@ -478,7 +491,7 @@
   .next-btn:hover { transform: scale(1.03); box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
 
   /* ── SCORE SCREEN ── */
-  #scoreScreen { gap: 24px; padding: 24px; text-align: center; }
+  #milestoneScreen { gap: 24px; padding: 24px; text-align: center; }
 
   .score-emoji { font-size: 5rem; animation: bounce 0.6s ease both; }
   @keyframes bounce {
@@ -533,7 +546,7 @@
 
 <!-- ══════════════ PROFILE SCREEN ══════════════ -->
 <div id="profileScreen" class="screen active">
-  <div class="profile-title">Qui joue ? 🎈</div>
+  <div class="profile-title">🎈 Qui joue ? 🎈</div>
   <div class="profile-list" id="profileList">
     <div class="profile-loading">Chargement…</div>
   </div>
@@ -589,6 +602,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div>Arabe</div>
     <div class="legend-item"><div class="legend-dot" style="background:#C084FC"></div>⭐ Surprise !</div>
   </div>
+  <button class="btn-secondary" onclick="openProgress()">📊 Mes progrès</button>
 </div>
 
 <!-- ══════════════ QUIZ SCREEN ══════════════ -->
@@ -610,22 +624,34 @@
   </div>
 </div>
 
-<!-- ══════════════ SCORE SCREEN ══════════════ -->
-<div id="scoreScreen" class="screen">
-  <div class="score-emoji" id="scoreEmoji"></div>
-  <div class="score-title" id="scoreTitle"></div>
-  <div class="score-num" id="scoreNum"></div>
-  <div class="score-sub" id="scoreSub"></div>
+<!-- ══════════════ MILESTONE SCREEN (every 10 questions) ══════════════ -->
+<div id="milestoneScreen" class="screen">
+  <div class="score-emoji" id="msEmoji"></div>
+  <div class="score-title" id="msTitle"></div>
+  <div class="score-num" id="msNum"></div>
+  <div class="score-sub" id="msSub"></div>
   <div class="score-actions">
-    <button class="btn-primary" onclick="replayCategory()">🔄 Rejouer ce thème</button>
+    <button class="btn-primary" id="msContinue" onclick="continueRun()">Continuer 🔥</button>
     <button class="btn-secondary" onclick="goToWheel()">🎡 Retour à la roue</button>
   </div>
+</div>
+
+<!-- ══════════════ PROGRESS SCREEN ══════════════ -->
+<div id="progressScreen" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" onclick="goToWheel()">← Roue</button>
+    <div class="quiz-cat-badge" style="color:#FFE66D;border-color:#FFE66D">📊 Mes progrès</div>
+  </div>
+  <div class="progress-body" id="progressBody"></div>
 </div>
 
 <!-- Current player badge — shown top-right during play; click to switch -->
 <div id="currentPlayer" class="current-player" style="display:none" onclick="showScreen('profileScreen')">
   <span class="cp-avatar"></span>
-  <span class="cp-name"></span>
+  <span class="cp-text">
+    <span class="cp-name"></span>
+    <span class="cp-score"></span>
+  </span>
   <span class="cp-switch">changer</span>
 </div>
 
@@ -779,10 +805,16 @@ function launchConfetti(color) {
 /* ═══════════════════════════════════════════════
    QUIZ LOGIC
 ═══════════════════════════════════════════════ */
-let quizQuestions = [];
-let quizIndex = 0;
-let score = 0;
+const MILESTONE = 10;                 // questions per milestone
+let queue = [];                       // upcoming questions this run
+let poolCache = [];                   // full pool, to reshuffle in endless mode
+let currentQ = null;
+let runScore = 0, runCount = 0;       // this run: correct answers / questions answered
+let blockResults = [];                // correctness for the current block of 10
 let answered = false;
+let endless = true;                   // false during "revise mistakes" replay
+let runTheme = null, runColor = '#FFE66D', runLabel = '';
+let runLogged = false;
 
 async function startQuiz() {
   if (!currentSeg) return;
@@ -799,29 +831,51 @@ async function startQuiz() {
       `<div class="result-card ${currentSeg.cls}"><div class="rc-top"><span>Aucune question pour ce thème 😅</span></div></div>`;
     return;
   }
-  quizQuestions = shuffle([...pool]);
-  quizIndex = 0;
-  score = 0;
+  beginRun({ theme: currentSeg.cls, label: currentSeg.label, color: currentSeg.color,
+             emoji: currentSeg.emoji, cls: currentSeg.cls, pool, endless: true });
+}
 
-  // Badge
+// Start a run: an endless theme run, or a finite "revise mistakes" replay.
+function beginRun({ theme, label, color, emoji, cls, pool, endless: isEndless }) {
+  runTheme = theme; runColor = color; runLabel = label; endless = isEndless;
+  poolCache = pool.slice();
+  queue = shuffle(pool.slice());
+  runScore = 0; runCount = 0; blockResults = []; runLogged = false;
+
   const badge = document.getElementById('catBadge');
-  badge.textContent = `${currentSeg.emoji} ${currentSeg.label}`;
-  badge.className = 'quiz-cat-badge ' + currentSeg.cls;
-  // Badge color using segment accent
-  badge.style.color = currentSeg.color;
-  badge.style.borderColor = currentSeg.color;
+  badge.textContent = `${emoji} ${label}`;
+  badge.className = 'quiz-cat-badge ' + cls;
+  badge.style.color = color;
+  badge.style.borderColor = color;
 
+  setBadgeScore();
   showScreen('quizScreen');
+  currentQ = drawNext();
   renderQuestion();
+}
+
+function drawNext() {
+  if (!queue.length) {
+    if (endless) queue = shuffle(poolCache.slice());
+    else return null;                 // finite run exhausted
+  }
+  return queue.shift();
+}
+
+// Live score shown under the player's name (top-right badge).
+function setBadgeScore() {
+  const el = document.querySelector('#currentPlayer .cp-score');
+  if (el) el.textContent = runCount ? `⭐ ${runScore}/${runCount}` : '';
 }
 
 function renderQuestion() {
   answered = false;
-  const q = quizQuestions[quizIndex];
-  const total = quizQuestions.length;
+  const q = currentQ;
+  if (!q) { runComplete(); return; }
   const letters = ['A', 'B', 'C', 'D'];
+  const posInBlock = runCount % MILESTONE;   // answered so far in the current block
 
-  document.getElementById('questionNum').textContent = `Question ${quizIndex + 1} sur ${total}`;
+  document.getElementById('questionNum').textContent = `Question ${runCount + 1}`;
   document.getElementById('questionText').textContent = q.question;
 
   // Question image (optional — illustration or image-as-question)
@@ -834,12 +888,15 @@ function renderQuestion() {
     imgWrap.style.display = 'none';
   }
 
-  // Progress dots
+  // Progress dots — the current block of 10 (toward the next milestone)
   const dots = document.getElementById('progressDots');
   dots.innerHTML = '';
-  for (let i = 0; i < total; i++) {
+  for (let i = 0; i < MILESTONE; i++) {
+    let cls = 'dot';
+    if (i < blockResults.length) cls += blockResults[i] ? ' done' : ' wrong';
+    else if (i === posInBlock) cls += ' current';
     const d = document.createElement('div');
-    d.className = 'dot' + (i < quizIndex ? ' done' : i === quizIndex ? ' current' : '');
+    d.className = cls;
     dots.appendChild(d);
   }
 
@@ -875,7 +932,7 @@ function renderQuestion() {
 
   const nb = document.getElementById('nextBtn');
   nb.className = 'next-btn';
-  nb.textContent = quizIndex < total - 1 ? 'Question suivante →' : 'Voir mon score 🏆';
+  nb.textContent = ((runCount + 1) % MILESTONE === 0) ? 'Palier ! 🎉' : 'Question suivante →';
 
   // Animate card
   const card = document.getElementById('questionCard');
@@ -887,7 +944,7 @@ function renderQuestion() {
 function selectAnswer(chosen) {
   if (answered) return;
   answered = true;
-  const q = quizQuestions[quizIndex];
+  const q = currentQ;
   const correctIdx = q.options.indexOf(q.answer);
   const btns = document.querySelectorAll('.choice-btn');
 
@@ -898,73 +955,141 @@ function selectAnswer(chosen) {
   });
 
   const isCorrect = chosen === correctIdx;
-  if (isCorrect) score++;
+  if (isCorrect) runScore++;
+  runCount++;
+  blockResults.push(isCorrect);
 
   // Record the attempt (fire-and-forget; never blocks the game)
   if (window.QuizDB && window.QuizDB.logAttempt) {
     window.QuizDB.logAttempt({
       profile_id: window.QuizDB.getProfileId(),
       question_id: q.db_id || null,
-      theme: currentSeg.cls,
+      theme: runTheme,
       difficulty: q.difficulty ?? null,
       is_correct: isCorrect
     });
   }
+  setBadgeScore();
 
   const fb = document.getElementById('feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
   fb.textContent = isCorrect ? '✅ Bravo, c\'est la bonne réponse !' : `❌ La bonne réponse était : ${q.answer}`;
 
-  // Update current dot
+  // Update the dot we just answered
   const dots = document.getElementById('progressDots');
-  dots.children[quizIndex].className = 'dot ' + (isCorrect ? 'done' : 'wrong');
+  const idx = (runCount - 1) % MILESTONE;
+  if (dots.children[idx]) dots.children[idx].className = 'dot ' + (isCorrect ? 'done' : 'wrong');
 
   // Preload next question's image (if any) — silent on failure
-  const next = quizQuestions[quizIndex + 1];
-  if (next && next.image) new Image().src = next.image;
+  if (queue[0] && queue[0].image) new Image().src = queue[0].image;
 
   document.getElementById('nextBtn').classList.add('show');
 }
 
 function nextQuestion() {
-  quizIndex++;
-  if (quizIndex < quizQuestions.length) {
-    renderQuestion();
-  } else {
-    showScore();
+  // Milestone every 10 answered questions.
+  if (runCount > 0 && runCount % MILESTONE === 0) { showMilestone(); return; }
+  currentQ = drawNext();
+  if (!currentQ) { runComplete(); return; }
+  renderQuestion();
+}
+
+function milestoneEmoji(s, total) {
+  return s >= total * 0.8 ? '🏆' : s >= total * 0.5 ? '🎉' : '💪';
+}
+
+function showMilestone() {
+  document.getElementById('msContinue').style.display = '';
+  document.getElementById('msEmoji').textContent = milestoneEmoji(runScore, runCount);
+  document.getElementById('msTitle').textContent = `Palier ${runCount / MILESTONE} atteint !`;
+  document.getElementById('msNum').textContent = `${runScore} / ${runCount}`;
+  document.getElementById('msNum').style.color = runColor;
+  document.getElementById('msSub').textContent = 'bonnes réponses';
+  showScreen('milestoneScreen');
+  launchConfetti(runColor);
+}
+
+function continueRun() {
+  blockResults = [];
+  currentQ = drawNext();
+  if (!currentQ) { runComplete(); return; }
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+// A finite run ("revise mistakes") has no more questions.
+function runComplete() {
+  finalizeRun();
+  document.getElementById('msContinue').style.display = 'none';
+  document.getElementById('msEmoji').textContent = '🎯';
+  document.getElementById('msTitle').textContent = 'Révision terminée !';
+  document.getElementById('msNum').textContent = `${runScore} / ${runCount}`;
+  document.getElementById('msNum').style.color = runColor;
+  document.getElementById('msSub').textContent = 'bonnes réponses';
+  showScreen('milestoneScreen');
+  launchConfetti(runColor);
+}
+
+// Log the run once (to sessions) when leaving it.
+function finalizeRun() {
+  if (runLogged) return;
+  runLogged = true;
+  const q = window.QuizDB;
+  const pid = q && q.getProfileId && q.getProfileId();
+  if (pid && runCount > 0 && q.logSession) {
+    q.logSession({ profile_id: pid, theme: runTheme, score: runScore, total: runCount });
   }
 }
 
-function showScore() {
-  const total = quizQuestions.length;
-  let emoji, title;
-  if (score === total)      { emoji = '🏆'; title = 'Parfait ! Bravo !'; }
-  else if (score >= total/2){ emoji = '😊'; title = 'Bien joué !'; }
-  else                      { emoji = '💪'; title = 'Continue d\'essayer !'; }
+/* ═══════════════════════════════════════════════
+   PROGRESS PAGE  +  "revise mistakes" replay
+═══════════════════════════════════════════════ */
+let failedMap = {};
 
-  document.getElementById('scoreEmoji').textContent = emoji;
-  document.getElementById('scoreTitle').textContent = title;
-  document.getElementById('scoreNum').textContent = `${score} / ${total}`;
-  document.getElementById('scoreSub').textContent = `en ${currentSeg.label}`;
-  document.getElementById('scoreNum').style.color = currentSeg.color;
-
-  showScreen('scoreScreen');
-  launchConfetti(currentSeg.color);
-
-  // Persist the session, then show this player's record for the theme.
-  (async () => {
-    const pid = window.QuizDB && window.QuizDB.getProfileId();
-    if (!pid || !window.QuizDB.logSession) return;
-    const theme = currentSeg.cls, label = currentSeg.label;
-    await window.QuizDB.logSession({ profile_id: pid, theme, score, total });
-    const best = await window.QuizDB.getBestScores(pid);
-    const b = best[theme];
-    if (b) document.getElementById('scoreSub').textContent = `en ${label} · 🌟 record ${b.best}/${b.total}`;
-  })();
+async function openProgress() {
+  const q = window.QuizDB;
+  const prof = q && q.getCurrentProfile && q.getCurrentProfile();
+  if (!prof) { alert('Choisis un profil pour voir tes progrès. 🙂'); return; }
+  showScreen('progressScreen');
+  const body = document.getElementById('progressBody');
+  body.innerHTML = '<div class="profile-loading">Chargement…</div>';
+  const prog = await q.getProgress(prof.id);
+  renderProgress(prog);
 }
 
-function replayCategory() {
-  startQuiz();
+function renderProgress(prog) {
+  failedMap = prog.failed || {};
+  const body = document.getElementById('progressBody');
+  const played = segments.filter(s => prog.byTheme[s.cls]);
+  if (!played.length) {
+    body.innerHTML = '<div class="profile-hint">Aucune partie jouée pour l\'instant. Va jouer ! 🎈</div>';
+    return;
+  }
+  body.innerHTML = played.map(s => {
+    const t = prog.byTheme[s.cls];
+    const acc = t.answered ? Math.round(100 * t.correct / t.answered) : 0;
+    const failed = t.failed || 0;
+    return `<div class="prog-card" style="border-color:${s.color}">
+      <div class="prog-head"><span class="prog-emoji">${s.emoji}</span><span class="prog-theme">${s.label}</span></div>
+      <div class="prog-stats"><span><b>${t.answered}</b> répondues</span><span><b>${acc}%</b> réussies</span><span><b>${t.correct}</b> bonnes</span></div>
+      ${failed
+        ? `<button class="btn-primary prog-replay" onclick="startReplay('${s.cls}')">🔁 Réviser mes erreurs (${failed})</button>`
+        : `<div class="prog-done">Aucune erreur à réviser 🎉</div>`}
+    </div>`;
+  }).join('');
+}
+
+async function startReplay(themeCls) {
+  const ids = failedMap[themeCls] || [];
+  if (!ids.length) return;
+  const seg = segments.find(s => s.cls === themeCls);
+  const q = window.QuizDB;
+  let qs = [];
+  if (q && q.fetchQuestionsByIds) qs = await q.fetchQuestionsByIds(ids);
+  if (!qs.length) { alert('Impossible de charger les questions à réviser.'); return; }
+  currentSeg = seg;   // keep segment context for colors/labels
+  beginRun({ theme: themeCls, label: 'Révision · ' + seg.label, color: seg.color,
+             emoji: seg.emoji, cls: seg.cls, pool: qs, endless: false });
 }
 
 /* ═══════════════════════════════════════════════
@@ -973,16 +1098,18 @@ function replayCategory() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  // Current-player badge: only while playing, and only if a profile is selected.
+  // Current-player badge: shown while playing (wheel / quiz / milestone),
+  // once a player (or guest) has been chosen so the name is populated.
   const cp = document.getElementById('currentPlayer');
   if (cp) {
-    const onPlay = id === 'wheelScreen' || id === 'quizScreen' || id === 'scoreScreen';
-    const prof = window.QuizDB && window.QuizDB.getCurrentProfile && window.QuizDB.getCurrentProfile();
-    cp.style.display = (onPlay && prof) ? 'flex' : 'none';
+    const onPlay = id === 'wheelScreen' || id === 'quizScreen' || id === 'milestoneScreen';
+    const named = cp.querySelector('.cp-name').textContent;
+    cp.style.display = (onPlay && named) ? 'flex' : 'none';
   }
 }
 
 function goToWheel() {
+  finalizeRun();
   showScreen('wheelScreen');
 }
 
@@ -1022,7 +1149,7 @@ setTimeout(() => {
 <script type="module">
 import {
   ensureSession, getProfiles, createProfile, deleteProfile, AVATARS,
-  logAttempt, logSession, fetchQuestions, getBestScores
+  logAttempt, logSession, fetchQuestions, getBestScores, getProgress, fetchQuestionsByIds
 } from './assets/js/db.js';
 
 const STORAGE_KEY = 'qr_profile_id';
@@ -1030,9 +1157,9 @@ let currentProfile = null;   // selected profile row, or null (guest)
 let managing = false;
 let pickedAvatar = AVATARS[0].emoji;
 
-// Bits the classic game script calls (selectAnswer / showScore / startQuiz / showScreen).
+// Bits the classic game script calls (selectAnswer / startQuiz / showScreen / openProgress).
 window.QuizDB = {
-  logAttempt, logSession, fetchQuestions, getBestScores,
+  logAttempt, logSession, fetchQuestions, getBestScores, getProgress, fetchQuestionsByIds,
   getProfileId: () => currentProfile ? currentProfile.id : null,
   getCurrentProfile: () => currentProfile,
   playGuest: () => play(null)
@@ -1052,9 +1179,10 @@ function setCurrent(profile) {
   if (profile) localStorage.setItem(STORAGE_KEY, profile.id);
   else localStorage.removeItem(STORAGE_KEY);
   const cp = document.getElementById('currentPlayer');
-  if (cp && profile) {
-    cp.querySelector('.cp-avatar').textContent = profile.avatar || '🙂';
-    cp.querySelector('.cp-name').textContent = profile.first_name;
+  if (cp) {
+    cp.querySelector('.cp-avatar').textContent = profile ? (profile.avatar || '🙂') : '🎮';
+    cp.querySelector('.cp-name').textContent = profile ? profile.first_name : 'Invité';
+    cp.querySelector('.cp-score').textContent = '';
   }
 }
 
