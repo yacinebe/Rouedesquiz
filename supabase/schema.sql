@@ -13,8 +13,11 @@
 create table if not exists public.profiles (
   id         uuid primary key default gen_random_uuid(),
   owner      uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  name       text not null,
+  first_name text not null,
+  last_name  text,
+  birthdate  date,
   avatar     text,
+  name       text,               -- legacy display field (migration 002); optional
   created_at timestamptz not null default now()
 );
 

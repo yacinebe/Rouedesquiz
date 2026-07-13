@@ -71,7 +71,59 @@
   .profile-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.16); }
   .profile-btn .avatar { font-size: 2.1rem; line-height: 1; }
   .profile-btn.add { border-style: dashed; background: transparent; }
+  .profile-btn { position: relative; }
+  .profile-name { font-size: 1.05rem; }
+  .profile-age { font-size: .78rem; opacity: .6; font-family: 'Nunito', sans-serif; }
   .profile-hint { opacity: .6; font-size: .95rem; }
+  .profile-del {
+    position: absolute; top: -9px; right: -9px; width: 26px; height: 26px; border-radius: 50%;
+    background: #FF6B6B; color: #fff; font-size: .85rem; display: none;
+    align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  }
+  #profileScreen.managing .profile-del { display: flex; }
+  #profileScreen.managing .profile-btn.add { opacity: .35; pointer-events: none; }
+  .manage-btn {
+    margin-top: 4px; padding: 8px 18px; border-radius: 100px; border: 2px solid rgba(255,255,255,0.22);
+    background: transparent; color: #fff; font-family: 'Nunito', sans-serif; font-size: .9rem; cursor: pointer; opacity: .82;
+  }
+  .manage-btn[aria-pressed="true"] { background: rgba(255,255,255,0.16); opacity: 1; }
+  .profile-loading { opacity: .5; font-family: 'Nunito', sans-serif; font-size: .95rem; padding: 18px; }
+  .profile-footer { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+
+  /* ── PROFILE CREATE FORM ── */
+  #profileCreateScreen { gap: 16px; padding: 24px; }
+  .profile-form {
+    display: flex; flex-direction: column; gap: 14px; width: min(420px, 92vw);
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 22px; padding: 22px;
+  }
+  .profile-form label { display: flex; flex-direction: column; gap: 6px; font-family: 'Nunito', sans-serif; font-size: .9rem; opacity: .85; text-align: left; }
+  .profile-form input {
+    font-family: 'Nunito', sans-serif; font-size: 1rem; padding: 11px 14px; border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.22); color: #fff;
+  }
+  .profile-form input:focus { outline: none; border-color: #FFE66D; }
+  .avatar-pick-label { font-family: 'Nunito', sans-serif; font-size: .9rem; opacity: .85; }
+  .avatar-pick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .avatar-opt {
+    font-size: 2rem; width: 58px; height: 58px; border-radius: 16px; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center; transition: transform .15s, border-color .15s;
+  }
+  .avatar-opt:hover { transform: scale(1.08); }
+  .avatar-opt.sel { border-color: #FFE66D; background: rgba(255,230,109,0.18); transform: scale(1.08); }
+  .form-actions { display: flex; gap: 12px; justify-content: center; margin-top: 4px; }
+
+  /* ── CURRENT PLAYER BADGE (top-right during play) ── */
+  .current-player {
+    position: fixed; top: 12px; right: 12px; z-index: 20;
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    padding: 6px 13px 6px 9px; border-radius: 100px;
+    background: rgba(0,0,0,0.34); border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px); color: #fff; font-family: 'Fredoka One', cursive; font-size: .92rem;
+  }
+  .current-player .cp-avatar { font-size: 1.4rem; line-height: 1; }
+  .current-player .cp-switch { font-size: .68rem; opacity: .6; font-family: 'Nunito', sans-serif; }
 
   /* ── WHEEL SCREEN ── */
   #wheelScreen { gap: 22px; padding: 24px; }
@@ -483,13 +535,35 @@
 <div id="profileScreen" class="screen active">
   <div class="profile-title">Qui joue ? 🎈</div>
   <div class="profile-list" id="profileList">
-    <!-- Fallback if the Supabase module can't load (e.g. opened via file://).
-         Replaced by real profiles when the module initializes. -->
-    <button class="profile-btn add" onclick="showScreen('wheelScreen')">
-      <span class="avatar">🎮</span><span>Jouer</span>
-    </button>
+    <div class="profile-loading">Chargement…</div>
   </div>
   <div class="profile-hint" id="profileHint"></div>
+  <div class="profile-footer">
+    <button class="manage-btn" id="manageBtn" aria-pressed="false" style="display:none">🗑️ Gérer les profils</button>
+    <button class="manage-btn" id="guestBtn" onclick="playGuest()">🎮 Sans profil</button>
+  </div>
+</div>
+
+<!-- ══════════════ PROFILE CREATE SCREEN ══════════════ -->
+<div id="profileCreateScreen" class="screen">
+  <div class="profile-title">Nouveau joueur 🎉</div>
+  <form class="profile-form" id="profileForm">
+    <label>Prénom
+      <input id="pfFirst" type="text" autocomplete="off" maxlength="24" required>
+    </label>
+    <label>Nom
+      <input id="pfLast" type="text" autocomplete="off" maxlength="24">
+    </label>
+    <label>Date de naissance
+      <input id="pfDob" type="date">
+    </label>
+    <span class="avatar-pick-label">Choisis ton personnage</span>
+    <div class="avatar-pick" id="avatarPick"></div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Créer 🚀</button>
+      <button type="button" class="btn-secondary" id="pfCancel">Annuler</button>
+    </div>
+  </form>
 </div>
 
 <!-- ══════════════ WHEEL SCREEN ══════════════ -->
@@ -546,6 +620,13 @@
     <button class="btn-primary" onclick="replayCategory()">🔄 Rejouer ce thème</button>
     <button class="btn-secondary" onclick="goToWheel()">🎡 Retour à la roue</button>
   </div>
+</div>
+
+<!-- Current player badge — shown top-right during play; click to switch -->
+<div id="currentPlayer" class="current-player" style="display:none" onclick="showScreen('profileScreen')">
+  <span class="cp-avatar"></span>
+  <span class="cp-name"></span>
+  <span class="cp-switch">changer</span>
 </div>
 
 <script src="questions.js"></script>
@@ -892,10 +973,24 @@ function replayCategory() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // Current-player badge: only while playing, and only if a profile is selected.
+  const cp = document.getElementById('currentPlayer');
+  if (cp) {
+    const onPlay = id === 'wheelScreen' || id === 'quizScreen' || id === 'scoreScreen';
+    const prof = window.QuizDB && window.QuizDB.getCurrentProfile && window.QuizDB.getCurrentProfile();
+    cp.style.display = (onPlay && prof) ? 'flex' : 'none';
+  }
 }
 
 function goToWheel() {
   showScreen('wheelScreen');
+}
+
+// "Sans profil": delegate to the module if present, else a plain fallback.
+function playGuest() {
+  const q = window.QuizDB;
+  if (q && q.playGuest) q.playGuest();
+  else showScreen('wheelScreen');
 }
 
 /* ═══════════════════════════════════════════════
@@ -911,73 +1006,169 @@ function shuffle(arr) {
 
 // Init
 drawWheel(0);
+
+// If the Supabase module never loads (e.g. opened via file://), swap the
+// loading placeholder for a plain "Jouer" fallback so the app stays usable.
+setTimeout(() => {
+  if (!window.QuizDB) {
+    const list = document.getElementById('profileList');
+    if (list) list.innerHTML =
+      '<button class="profile-btn add" onclick="showScreen(\'wheelScreen\')"><span class="avatar">🎮</span><span>Jouer</span></button>';
+  }
+}, 1200);
 </script>
 
-<!-- Supabase: anonymous auth, profile picker, progress helpers (ES module) -->
+<!-- Supabase: anonymous auth, profiles, progress helpers (ES module) -->
 <script type="module">
 import {
-  ensureSession, getProfiles, createProfile,
+  ensureSession, getProfiles, createProfile, deleteProfile, AVATARS,
   logAttempt, logSession, fetchQuestions, getBestScores
 } from './assets/js/db.js';
 
 const STORAGE_KEY = 'qr_profile_id';
-let selectedProfileId = localStorage.getItem(STORAGE_KEY) || null;
+let currentProfile = null;   // selected profile row, or null (guest)
+let managing = false;
+let pickedAvatar = AVATARS[0].emoji;
 
-// Bits the classic game script calls (see selectAnswer / showScore / startQuiz).
+// Bits the classic game script calls (selectAnswer / showScore / startQuiz / showScreen).
 window.QuizDB = {
   logAttempt, logSession, fetchQuestions, getBestScores,
-  getProfileId: () => selectedProfileId
+  getProfileId: () => currentProfile ? currentProfile.id : null,
+  getCurrentProfile: () => currentProfile,
+  playGuest: () => play(null)
 };
 
-const AVATARS = ['🦊','🐼','🦁','🐸','🦄','🐙','🐝','🐧','🦉','🐢','🐰','🐨'];
-const randomAvatar = () => AVATARS[Math.floor(Math.random() * AVATARS.length)];
+function ageFrom(birthdate) {
+  if (!birthdate) return null;
+  const b = new Date(birthdate), now = new Date();
+  let a = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+  return (a >= 0 && a < 120) ? a : null;
+}
 
-function selectProfile(id) {
-  selectedProfileId = id;
-  if (id) localStorage.setItem(STORAGE_KEY, id);
+function setCurrent(profile) {
+  currentProfile = profile;
+  if (profile) localStorage.setItem(STORAGE_KEY, profile.id);
   else localStorage.removeItem(STORAGE_KEY);
+  const cp = document.getElementById('currentPlayer');
+  if (cp && profile) {
+    cp.querySelector('.cp-avatar').textContent = profile.avatar || '🙂';
+    cp.querySelector('.cp-name').textContent = profile.first_name;
+  }
+}
+
+function play(profile) {
+  setCurrent(profile);
   window.showScreen('wheelScreen');
 }
 
+/* ── "Qui joue ?" picker ── */
 async function renderProfiles() {
+  const profiles = await getProfiles();
   const listEl = document.getElementById('profileList');
   const hintEl = document.getElementById('profileHint');
+  const manageBtn = document.getElementById('manageBtn');
   listEl.innerHTML = '';
 
-  const profiles = await getProfiles();
-  for (const p of profiles) {
-    const btn = document.createElement('button');
-    btn.className = 'profile-btn';
-    btn.innerHTML = `<span class="avatar">${p.avatar || '🙂'}</span><span>${p.name}</span>`;
-    btn.onclick = () => selectProfile(p.id);
-    listEl.appendChild(btn);
-  }
-
+  // + Nouveau — always first.
   const add = document.createElement('button');
   add.className = 'profile-btn add';
   add.innerHTML = `<span class="avatar">➕</span><span>Nouveau</span>`;
-  add.onclick = async () => {
-    const name = (prompt('Prénom du joueur ?') || '').trim();
-    if (!name) return;
-    const created = await createProfile(name, randomAvatar());
-    if (created) selectProfile(created.id);
-    else alert("Impossible de créer le profil (hors ligne ?).");
-  };
+  add.onclick = openCreate;
   listEl.appendChild(add);
 
-  const guest = document.createElement('button');
-  guest.className = 'profile-btn add';
-  guest.innerHTML = `<span class="avatar">🎮</span><span>Sans profil</span>`;
-  guest.onclick = () => selectProfile(null);
-  listEl.appendChild(guest);
+  for (const p of profiles) {
+    const age = ageFrom(p.birthdate);
+    const btn = document.createElement('button');
+    btn.className = 'profile-btn';
+    btn.innerHTML =
+      `<span class="avatar">${p.avatar || '🙂'}</span>` +
+      `<span class="profile-name">${p.first_name}</span>` +
+      (age != null ? `<span class="profile-age">${age} ans</span>` : '') +
+      `<span class="profile-del" title="Supprimer">✕</span>`;
+    btn.onclick = (e) => {
+      if (e.target.classList.contains('profile-del')) return confirmDelete(p);
+      if (managing) return;                 // in manage mode, taps don't start a game
+      play(p);
+    };
+    listEl.appendChild(btn);
+  }
 
   hintEl.textContent = profiles.length
     ? 'Touche ton personnage pour jouer.'
-    : 'Crée un joueur, ou joue sans profil.';
+    : 'Crée ton premier joueur ! 🎉';
+  manageBtn.style.display = profiles.length ? '' : 'none';
 }
 
+async function confirmDelete(p) {
+  if (!confirm(`Supprimer le profil de ${p.first_name} ? Sa progression sera perdue.`)) return;
+  const res = await deleteProfile(p.id);
+  if (res.error) { alert(res.error); return; }
+  if (currentProfile && currentProfile.id === p.id) setCurrent(null);
+  await renderProfiles();
+}
+
+function initManage() {
+  const btn = document.getElementById('manageBtn');
+  btn.addEventListener('click', () => {
+    managing = !managing;
+    btn.setAttribute('aria-pressed', String(managing));
+    btn.textContent = managing ? '✓ Terminé' : '🗑️ Gérer les profils';
+    document.getElementById('profileScreen').classList.toggle('managing', managing);
+  });
+}
+
+/* ── Create form ── */
+function renderAvatarPicker() {
+  const wrap = document.getElementById('avatarPick');
+  wrap.innerHTML = '';
+  AVATARS.forEach((a) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'avatar-opt' + (a.emoji === pickedAvatar ? ' sel' : '');
+    b.textContent = a.emoji;
+    b.title = a.label;
+    b.onclick = () => {
+      pickedAvatar = a.emoji;
+      wrap.querySelectorAll('.avatar-opt').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function openCreate() {
+  document.getElementById('profileForm').reset();
+  pickedAvatar = AVATARS[0].emoji;
+  renderAvatarPicker();
+  window.showScreen('profileCreateScreen');
+}
+
+function initCreateForm() {
+  renderAvatarPicker();
+  document.getElementById('pfCancel').addEventListener('click', () => window.showScreen('profileScreen'));
+  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const first_name = document.getElementById('pfFirst').value.trim();
+    if (!first_name) return;
+    const res = await createProfile({
+      first_name,
+      last_name: document.getElementById('pfLast').value.trim() || null,
+      birthdate: document.getElementById('pfDob').value || null,
+      avatar: pickedAvatar
+    });
+    if (res.error) { alert(res.error); return; }
+    await renderProfiles();
+    play(res.data);   // jump straight into playing as the new profile
+  });
+}
+
+/* ── Startup ── */
 (async () => {
   await ensureSession();
+  initManage();
+  initCreateForm();
   await renderProfiles();
 })();
 </script>

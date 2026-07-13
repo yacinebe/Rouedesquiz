@@ -34,32 +34,71 @@ export async function ensureSession() {
 
 /* ── Profiles ────────────────────────────────────────────────── */
 
+// Selectable avatars for the profile form (3 "cool kids" + 2 adults).
+// Stored as the emoji string on profiles.avatar. Swap to image paths here
+// later if you add illustrated avatars under assets/.
+export const AVATARS = [
+  { emoji: '😎', label: 'Le Cool' },
+  { emoji: '🦸', label: 'Super-héros' },
+  { emoji: '🥷', label: 'Ninja' },
+  { emoji: '🧙', label: 'Le Magicien' },
+  { emoji: '👸', label: 'La Reine' }
+];
+
 export async function getProfiles() {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, name, avatar, created_at')
+      .select('id, first_name, last_name, birthdate, avatar, name, created_at')
       .order('created_at', { ascending: true });
     if (error) throw error;
-    return data ?? [];
+    // first_name is canonical; fall back to legacy `name` for old rows.
+    return (data ?? []).map(r => ({ ...r, first_name: r.first_name || r.name || 'Joueur' }));
   } catch (e) {
     console.warn('[db] getProfiles failed:', e);
     return [];
   }
 }
 
-export async function createProfile(name, avatar = null) {
+// Map a Supabase/Postgres error to an honest, user-facing French message.
+function friendlyError(error) {
+  console.warn('[db] error:', error);
+  const msg = error && error.message || '';
+  if (error && error.code === '42703' || /column .* does not exist/i.test(msg))
+    return "La base de données n'est pas à jour. Lance la migration Supabase (002_profiles_fields.sql) dans le SQL Editor.";
+  if (error && (error.code === '42501' || error.code === 'PGRST301') || /row-level security|jwt|not authenticated/i.test(msg))
+    return "Session non authentifiée. Recharge la page et réessaie.";
+  if (error && error.code === '23505') return "Ce profil existe déjà.";
+  return msg ? `Erreur : ${msg}` : "Une erreur est survenue.";
+}
+const OFFLINE = "Tu sembles hors ligne. Vérifie ta connexion et réessaie.";
+
+// Returns { data } on success, { error: <message> } on failure.
+export async function createProfile({ first_name, last_name = null, birthdate = null, avatar = null }) {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .insert({ name, avatar })
-      .select('id, name, avatar')
+      // keep legacy `name` in sync for any tooling that still reads it
+      .insert({ first_name, last_name, birthdate, avatar, name: first_name })
+      .select('id, first_name, last_name, birthdate, avatar')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) return { error: friendlyError(error) };
+    return { data };
   } catch (e) {
-    console.warn('[db] createProfile failed:', e);
-    return null;
+    console.warn('[db] createProfile network error:', e);
+    return { error: OFFLINE };
+  }
+}
+
+// Returns { ok: true } on success, { error: <message> } on failure.
+export async function deleteProfile(id) {
+  try {
+    const { error } = await supabase.from('profiles').delete().eq('id', id);
+    if (error) return { error: friendlyError(error) };
+    return { ok: true };
+  } catch (e) {
+    console.warn('[db] deleteProfile network error:', e);
+    return { error: OFFLINE };
   }
 }
 
