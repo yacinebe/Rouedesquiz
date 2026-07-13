@@ -14,45 +14,63 @@ let currentAngle = 0;
 let spinning = false;
 let currentSeg = null;
 
-function drawWheel(angle) {
-  ctx.clearRect(0, 0, SIZE, SIZE);
+// Render the wheel onto any context at a given size. `labels` draws the theme
+// names (skipped on the small welcome wheel for a cleaner look).
+function renderWheel(context, size, angle, labels) {
+  const cx = size / 2, cy = size / 2, r = size / 2 - 4;
+  context.clearRect(0, 0, size, size);
   for (let i = 0; i < N; i++) {
     const start = angle + i * ARC;
     const end   = start + ARC;
     const seg   = SEGMENTS[i];
 
-    ctx.beginPath();
-    ctx.moveTo(CX, CY);
-    ctx.arc(CX, CY, R, start, end);
-    ctx.closePath();
-    ctx.fillStyle = seg.color;
-    ctx.fill();
+    context.beginPath();
+    context.moveTo(cx, cy);
+    context.arc(cx, cy, r, start, end);
+    context.closePath();
+    context.fillStyle = seg.color;
+    context.fill();
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    context.strokeStyle = 'rgba(255,255,255,0.25)';
+    context.lineWidth = 2;
+    context.stroke();
 
-    ctx.save();
-    ctx.translate(CX, CY);
-    ctx.rotate(start + ARC / 2);
-    ctx.textAlign = 'right';
-
-    ctx.font = `${SIZE * 0.056}px serif`;
-    ctx.fillText(seg.emoji, R - 10, 6);
-
-    ctx.font = `bold ${SIZE * 0.038}px 'Nunito', sans-serif`;
-    ctx.fillStyle = seg.dark;
-    ctx.fillText(seg.label, R - 42, 6);
-    ctx.restore();
+    context.save();
+    context.translate(cx, cy);
+    context.rotate(start + ARC / 2);
+    if (labels) {
+      context.textAlign = 'right';
+      context.font = `${size * 0.056}px serif`;
+      context.fillText(seg.emoji, r - 10, 6);
+      context.font = `bold ${size * 0.038}px 'Nunito', sans-serif`;
+      context.fillStyle = seg.dark;
+      context.fillText(seg.label, r - 42, 6);
+    } else {
+      // Decorative welcome wheel: one big theme emoji centred in each wedge.
+      context.textAlign = 'center';
+      context.font = `${size * 0.14}px serif`;
+      context.fillText(seg.emoji, r * 0.6, size * 0.05);
+    }
+    context.restore();
   }
 
-  ctx.beginPath();
-  ctx.arc(CX, CY, 34, 0, 2 * Math.PI);
-  ctx.fillStyle = '#fff';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 3;
-  ctx.stroke();
+  context.beginPath();
+  context.arc(cx, cy, size * 0.089, 0, 2 * Math.PI);
+  context.fillStyle = '#fff';
+  context.fill();
+  context.strokeStyle = 'rgba(255,255,255,0.3)';
+  context.lineWidth = 3;
+  context.stroke();
+}
+
+function drawWheel(angle) {
+  renderWheel(ctx, SIZE, angle, true);
+}
+
+// Static decorative wheel for the welcome screen.
+export function paintWelcome() {
+  const c = document.getElementById('welcomeWheel');
+  if (c) renderWheel(c.getContext('2d'), c.width, 0, false);
 }
 
 function getWinner(angle) {
@@ -71,11 +89,19 @@ function spin() {
   const start      = performance.now();
   const startAngle = currentAngle;
 
-  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+  // Deceleration + a damped two-bounce rebound that settles exactly on target
+  // (wobble is 0 at t=1, so getWinner still lands on startAngle + totalDelta).
+  const WOBBLE = 0.28; // radians of overshoot
+  const decel  = (t) => 1 - Math.pow(1 - t, 3);
+  const wobble = (t) => {
+    if (t < 0.62) return 0;
+    const u = (t - 0.62) / 0.38;                          // 0→1 over the settle phase
+    return Math.sin(u * Math.PI * 4) * (1 - u) * WOBBLE;  // 2 rebounds, damping to 0
+  };
 
   function frame(now) {
     const t = Math.min((now - start) / duration, 1);
-    currentAngle = startAngle + totalDelta * easeOut(t);
+    currentAngle = startAngle + totalDelta * decel(t) + wobble(t);
     drawWheel(currentAngle);
     if (t < 1) {
       requestAnimationFrame(frame);

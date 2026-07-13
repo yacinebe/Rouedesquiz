@@ -130,6 +130,31 @@
   .prog-replay { padding: 9px 18px; font-size: .95rem; }
   .prog-done { font-family: 'Nunito', sans-serif; font-size: .88rem; opacity: .6; }
 
+  /* ── WELCOME / AUTH SCREENS ── */
+  #welcomeScreen { gap: 20px; padding: 24px; text-align: center; }
+  .welcome-wheel { width: min(180px, 44vw); height: min(180px, 44vw); filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
+  .welcome-title { font-size: clamp(1.05rem, 4.2vw, 1.35rem); max-width: min(320px, 82vw); line-height: 1.3; overflow-wrap: break-word; }
+  .welcome-actions { display: flex; flex-direction: column; gap: 12px; width: min(360px, 88vw); }
+  .welcome-actions .btn-primary, .welcome-actions .btn-secondary { width: 100%; }
+  #signInScreen, #signUpScreen { justify-content: flex-start; padding: 18px 16px 60px; gap: 14px; }
+  .auth-form { width: min(420px, 94vw); }
+  .field-hint { font-size: .74rem; opacity: .55; font-family: 'Nunito', sans-serif; }
+  .auth-msg { font-family: 'Nunito', sans-serif; font-size: .9rem; min-height: 1.2em; margin: 0; text-align: center; }
+  .auth-msg.ok { color: #6BCB77; }
+  .auth-msg.err { color: #FF9A8E; }
+  .pw-field { position: relative; display: block; }
+  .pw-field input { padding-right: 46px; width: 100%; }
+  .pw-eye {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: .75; padding: 4px 6px; line-height: 1;
+  }
+  .pw-eye:hover { opacity: 1; }
+  .text-link {
+    align-self: flex-start; background: none; border: none; color: #FFE66D; opacity: .85;
+    font-family: 'Nunito', sans-serif; font-size: .85rem; cursor: pointer; padding: 2px 0; text-decoration: underline;
+  }
+  .text-link:hover { opacity: 1; }
+
   /* ── WHEEL SCREEN ── */
   #wheelScreen { gap: 22px; padding: 24px; }
 

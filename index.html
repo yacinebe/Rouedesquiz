@@ -9,8 +9,81 @@
 </head>
 <body>
 
+<!-- ══════════════ WELCOME SCREEN ══════════════ -->
+<div id="welcomeScreen" class="screen active">
+  <canvas id="welcomeWheel" width="260" height="260" class="welcome-wheel"></canvas>
+  <h1 class="welcome-title">Bienvenue à la grande roue des quiz 🎡</h1>
+  <div class="welcome-actions">
+    <button class="btn-primary" id="goSignIn">Je dispose déjà d'un compte</button>
+    <button class="btn-secondary" id="goSignUp">Je veux m'inscrire</button>
+  </div>
+</div>
+
+<!-- ══════════════ SIGN IN SCREEN ══════════════ -->
+<div id="signInScreen" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" data-action="welcome">← Retour</button>
+    <div class="quiz-cat-badge" style="color:#FFE66D;border-color:#FFE66D">Connexion</div>
+  </div>
+  <form class="profile-form auth-form" id="signInForm">
+    <label>Email
+      <input id="siEmail" type="email" inputmode="email" autocomplete="email" required>
+    </label>
+    <label>Mot de passe
+      <span class="pw-field">
+        <input id="siPassword" type="password" autocomplete="current-password" required>
+        <button type="button" class="pw-eye" data-eye="siPassword" aria-label="Afficher le mot de passe">👁️</button>
+      </span>
+    </label>
+    <button type="button" class="text-link" id="forgotBtn">Mot de passe oublié ?</button>
+    <div class="form-actions"><button type="submit" class="btn-primary">Se connecter</button></div>
+    <p class="auth-msg" id="siMsg"></p>
+  </form>
+</div>
+
+<!-- ══════════════ SIGN UP SCREEN ══════════════ -->
+<div id="signUpScreen" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" data-action="welcome">← Retour</button>
+    <div class="quiz-cat-badge" style="color:#FFE66D;border-color:#FFE66D">Inscription</div>
+  </div>
+  <form class="profile-form auth-form" id="signUpForm">
+    <label>Email
+      <input id="suEmail" type="email" inputmode="email" autocomplete="email" required>
+    </label>
+    <label>Mot de passe
+      <span class="pw-field">
+        <input id="suPassword" type="password" autocomplete="new-password" minlength="6" required>
+        <button type="button" class="pw-eye" data-eye="suPassword" aria-label="Afficher le mot de passe">👁️</button>
+      </span>
+      <span class="field-hint">6 caractères minimum</span>
+    </label>
+    <div class="form-actions"><button type="submit" class="btn-primary">S'inscrire 🚀</button></div>
+    <p class="auth-msg" id="suMsg"></p>
+  </form>
+</div>
+
+<!-- ══════════════ RESET PASSWORD SCREEN ══════════════ -->
+<div id="resetScreen" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" data-action="welcome">← Retour</button>
+    <div class="quiz-cat-badge" style="color:#FFE66D;border-color:#FFE66D">Nouveau mot de passe</div>
+  </div>
+  <form class="profile-form auth-form" id="resetForm">
+    <label>Nouveau mot de passe
+      <span class="pw-field">
+        <input id="npPassword" type="password" autocomplete="new-password" minlength="6" required>
+        <button type="button" class="pw-eye" data-eye="npPassword" aria-label="Afficher le mot de passe">👁️</button>
+      </span>
+      <span class="field-hint">6 caractères minimum</span>
+    </label>
+    <div class="form-actions"><button type="submit" class="btn-primary">Changer le mot de passe</button></div>
+    <p class="auth-msg" id="npMsg"></p>
+  </form>
+</div>
+
 <!-- ══════════════ PROFILE SCREEN ══════════════ -->
-<div id="profileScreen" class="screen active">
+<div id="profileScreen" class="screen">
   <div class="profile-title">🎈 Qui joue ? 🎈</div>
   <div class="profile-list" id="profileList">
     <div class="profile-loading">Chargement…</div>
@@ -18,7 +91,7 @@
   <div class="profile-hint" id="profileHint"></div>
   <div class="profile-footer">
     <button class="manage-btn" id="manageBtn" aria-pressed="false" style="display:none">🗑️ Gérer les profils</button>
-    <button class="manage-btn" id="guestBtn">🎮 Sans profil</button>
+    <button class="manage-btn" id="signOutBtn">🚪 Se déconnecter</button>
   </div>
 </div>
 

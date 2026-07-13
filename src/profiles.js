@@ -1,6 +1,6 @@
 // Profiles: anonymous auth, the "Qui joue ?" picker, create form, delete,
 // and the current-player badge. Owns the current profile.
-import { ensureSession, getProfiles, createProfile, deleteProfile, AVATARS } from './db.js';
+import { getProfiles, createProfile, deleteProfile, AVATARS } from './db.js';
 import { showScreen } from './ui.js';
 
 const STORAGE_KEY = 'qr_profile_id';
@@ -10,7 +10,7 @@ let pickedAvatar = AVATARS[0].emoji;
 
 export function getCurrentProfile() { return currentProfile; }
 export function getProfileId() { return currentProfile ? currentProfile.id : null; }
-export function playGuest() { play(null); }
+export function resetCurrent() { setCurrent(null); }
 
 function ageFrom(birthdate) {
   if (!birthdate) return null;
@@ -27,8 +27,8 @@ function setCurrent(profile) {
   else localStorage.removeItem(STORAGE_KEY);
   const cp = document.getElementById('currentPlayer');
   if (cp) {
-    cp.querySelector('.cp-avatar').textContent = profile ? (profile.avatar || '🙂') : '🎮';
-    cp.querySelector('.cp-name').textContent = profile ? profile.first_name : 'Invité';
+    cp.querySelector('.cp-avatar').textContent = profile ? (profile.avatar || '🙂') : '';
+    cp.querySelector('.cp-name').textContent = profile ? profile.first_name : '';
     cp.querySelector('.cp-score').textContent = '';
   }
 }
@@ -139,11 +139,14 @@ function initCreateForm() {
   });
 }
 
-export async function initProfiles() {
-  await ensureSession();
+// Re-render the picker (e.g. after sign-in / sign-out swaps the account).
+export async function refreshProfiles() {
+  await renderProfiles();
+}
+
+export function initProfiles() {
   initManage();
   initCreateForm();
-  document.getElementById('guestBtn').addEventListener('click', playGuest);
   document.getElementById('currentPlayer').addEventListener('click', () => showScreen('profileScreen'));
-  await renderProfiles();
+  // The picker is rendered by auth.js once a user is signed in (refreshProfiles).
 }

@@ -17,19 +17,90 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 
 /* ── Auth ────────────────────────────────────────────────────── */
 
-// Ensure we have a session; create an anonymous one if needed.
-// Returns the user, or null if we're offline / auth is unavailable.
-export async function ensureSession() {
+// Account-first: the app is gated behind an email + password account.
+// Profiles (the kids) live under the signed-in account.
+
+// Current auth user, or null if not signed in / offline.
+export async function getAuthUser() {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) return session.user;
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) { console.warn('[db] anonymous sign-in failed:', error.message); return null; }
-    return data.user;
+    const { data: { user } } = await supabase.auth.getUser();
+    return user ?? null;
   } catch (e) {
-    console.warn('[db] ensureSession failed (offline?):', e);
+    console.warn('[db] getAuthUser failed:', e);
     return null;
   }
+}
+
+// Where email-confirmation / reset links return to (must be in Supabase's
+// Auth → URL Configuration → Redirect URLs allowlist).
+const redirectTo = () => window.location.origin + window.location.pathname;
+
+function friendlyAuthError(error) {
+  const m = (error && error.message) || '';
+  if (/invalid login credentials/i.test(m)) return 'Email ou mot de passe incorrect.';
+  if (/already registered|already been registered|already exists/i.test(m)) return 'Un compte existe déjà avec cet email. Connecte-toi.';
+  if (/at least 6|password should be/i.test(m)) return 'Mot de passe : 6 caractères minimum.';
+  if (/email not confirmed/i.test(m)) return 'Confirme ton email d\'abord (vérifie ta boîte mail).';
+  return m || 'Une erreur est survenue.';
+}
+
+// Create a new account. If "Confirm email" is ON in Supabase, no session is
+// returned until the user confirms (needsConfirm: true); if OFF, they're
+// signed in immediately.
+export async function signUp(email, password) {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email, password, options: { emailRedirectTo: redirectTo() }
+    });
+    if (error) return { error: friendlyAuthError(error) };
+    return { needsConfirm: !data.session };
+  } catch (e) {
+    console.warn('[db] signUp failed:', e);
+    return { error: OFFLINE };
+  }
+}
+
+export async function signInPassword(email, password) {
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: friendlyAuthError(error) };
+    return { ok: true };
+  } catch (e) {
+    console.warn('[db] signInPassword failed:', e);
+    return { error: OFFLINE };
+  }
+}
+
+export async function signOut() {
+  try { await supabase.auth.signOut(); return { ok: true }; }
+  catch (e) { console.warn('[db] signOut failed:', e); return { error: 'Erreur' }; }
+}
+
+// Send a password-reset link. The link returns to the app with a recovery
+// session (fires PASSWORD_RECOVERY), where the user sets a new password.
+export async function resetPassword(email) {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() });
+    return { error: error ? friendlyAuthError(error) : null };
+  } catch (e) {
+    console.warn('[db] resetPassword failed:', e);
+    return { error: OFFLINE };
+  }
+}
+
+export async function updatePassword(password) {
+  try {
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error: error ? friendlyAuthError(error) : null };
+  } catch (e) {
+    console.warn('[db] updatePassword failed:', e);
+    return { error: OFFLINE };
+  }
+}
+
+// Subscribe to auth-state changes (SIGNED_IN / SIGNED_OUT / USER_UPDATED …).
+export function onAuthChange(cb) {
+  return supabase.auth.onAuthStateChange((event, session) => cb(event, session));
 }
 
 /* ── Profiles ────────────────────────────────────────────────── */
