@@ -1,0 +1,534 @@
+:root {
+    --math:     #FF6B6B;
+    --reading:  #4ECDC4;
+    --geo:      #FFE66D;
+    --surprise: #C084FC;
+    --astro:    #60AFFF;
+    --animaux:  #6BCB77;
+    --arabe:    #F59E0B;
+    --bg:       #1a1a2e;
+    --card:     #16213e;
+    --text:     #f0f0f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 90%, rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 75%, rgba(255,255,255,.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  /* ── PROFILE SCREEN ── */
+  #profileScreen { gap: 22px; padding: 24px; text-align: center; }
+  .profile-title { font-family: 'Fredoka One', cursive; font-size: 1.9rem; }
+  .profile-list { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 520px; }
+  .profile-btn {
+    padding: 16px 22px; border-radius: 22px;
+    border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08);
+    color: #fff; font-family: 'Fredoka One', cursive; font-size: 1.05rem; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 108px;
+    transition: transform .15s, background .2s;
+  }
+  .profile-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.16); }
+  .profile-btn .avatar { font-size: 2.1rem; line-height: 1; }
+  .profile-btn.add { border-style: dashed; background: transparent; }
+  .profile-btn { position: relative; }
+  .profile-name { font-size: 1.05rem; }
+  .profile-age { font-size: .78rem; opacity: .6; font-family: 'Nunito', sans-serif; }
+  .profile-hint { opacity: .6; font-size: .95rem; }
+  .profile-del {
+    position: absolute; top: -9px; right: -9px; width: 26px; height: 26px; border-radius: 50%;
+    background: #FF6B6B; color: #fff; font-size: .85rem; display: none;
+    align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  }
+  #profileScreen.managing .profile-del { display: flex; }
+  #profileScreen.managing .profile-btn.add { opacity: .35; pointer-events: none; }
+  .manage-btn {
+    margin-top: 4px; padding: 8px 18px; border-radius: 100px; border: 2px solid rgba(255,255,255,0.22);
+    background: transparent; color: #fff; font-family: 'Nunito', sans-serif; font-size: .9rem; cursor: pointer; opacity: .82;
+  }
+  .manage-btn[aria-pressed="true"] { background: rgba(255,255,255,0.16); opacity: 1; }
+  .profile-loading { opacity: .5; font-family: 'Nunito', sans-serif; font-size: .95rem; padding: 18px; }
+  .profile-footer { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+
+  /* ── PROFILE CREATE FORM ── */
+  #profileCreateScreen { gap: 16px; padding: 24px; }
+  .profile-form {
+    display: flex; flex-direction: column; gap: 14px; width: min(420px, 92vw);
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 22px; padding: 22px;
+  }
+  .profile-form label { display: flex; flex-direction: column; gap: 6px; font-family: 'Nunito', sans-serif; font-size: .9rem; opacity: .85; text-align: left; }
+  .profile-form input {
+    font-family: 'Nunito', sans-serif; font-size: 1rem; padding: 11px 14px; border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.22); color: #fff;
+  }
+  .profile-form input:focus { outline: none; border-color: #FFE66D; }
+  .avatar-pick-label { font-family: 'Nunito', sans-serif; font-size: .9rem; opacity: .85; }
+  .avatar-pick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .avatar-opt {
+    font-size: 2rem; width: 58px; height: 58px; border-radius: 16px; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center; transition: transform .15s, border-color .15s;
+  }
+  .avatar-opt:hover { transform: scale(1.08); }
+  .avatar-opt.sel { border-color: #FFE66D; background: rgba(255,230,109,0.18); transform: scale(1.08); }
+  .form-actions { display: flex; gap: 12px; justify-content: center; margin-top: 4px; }
+
+  /* ── CURRENT PLAYER BADGE (top-right during play) ── */
+  .current-player {
+    position: fixed; top: 12px; right: 12px; z-index: 20;
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    padding: 6px 13px 6px 9px; border-radius: 100px;
+    background: rgba(0,0,0,0.34); border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px); color: #fff; font-family: 'Fredoka One', cursive; font-size: .92rem;
+  }
+  .current-player .cp-avatar { font-size: 1.4rem; line-height: 1; }
+  .current-player .cp-text { display: flex; flex-direction: column; line-height: 1.15; }
+  .current-player .cp-score { font-size: .72rem; opacity: .85; font-family: 'Nunito', sans-serif; }
+  .current-player .cp-switch { font-size: .68rem; opacity: .6; font-family: 'Nunito', sans-serif; }
+
+  /* ── PROGRESS PAGE ── */
+  #progressScreen { justify-content: flex-start; padding: 18px 16px 60px; gap: 14px; }
+  .progress-body { width: min(560px, 94vw); display: flex; flex-direction: column; gap: 12px; }
+  .prog-card { background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; text-align: left; }
+  .prog-head { display: flex; align-items: center; gap: 10px; font-family: 'Fredoka One', cursive; font-size: 1.1rem; }
+  .prog-emoji { font-size: 1.5rem; }
+  .prog-stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 10px; font-family: 'Nunito', sans-serif; font-size: .92rem; opacity: .85; }
+  .prog-stats b { font-family: 'Fredoka One', cursive; opacity: 1; }
+  .prog-replay { padding: 9px 18px; font-size: .95rem; }
+  .prog-done { font-family: 'Nunito', sans-serif; font-size: .88rem; opacity: .6; }
+
+  /* ── WHEEL SCREEN ── */
+  #wheelScreen { gap: 22px; padding: 24px; }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    text-align: center;
+    background: linear-gradient(135deg, #FF6B6B, #C084FC, #60AFFF, #4ECDC4, #FFE66D);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(192,132,252,0.4));
+  }
+
+  .wheel-section { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+
+  .pointer {
+    width: 0; height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 36px solid #fff;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+    position: relative;
+  }
+  .pointer::after {
+    content: '';
+    position: absolute;
+    top: -40px; left: -8px;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+  }
+
+  .wheel-wrap {
+    position: relative;
+    width: min(360px, 88vw);
+    height: min(360px, 88vw);
+  }
+
+  canvas {
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 6px rgba(255,255,255,0.15),
+      0 0 0 12px rgba(255,255,255,0.06),
+      0 20px 60px rgba(0,0,0,0.6),
+      0 0 80px rgba(96,175,255,0.2);
+    cursor: pointer;
+    width: 100%; height: 100%;
+  }
+
+  .spin-btn {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.78rem;
+    color: #1a1a2e;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    transition: transform 0.15s, box-shadow 0.15s;
+    z-index: 5;
+    line-height: 1.2;
+    text-align: center;
+    padding: 4px;
+  }
+  .spin-btn:hover { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 6px 28px rgba(0,0,0,0.6); }
+  .spin-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: translate(-50%, -50%); }
+
+  /* Result banner on wheel screen */
+  .result-banner {
+    min-height: 72px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .result-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 14px 28px;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.2rem, 4vw, 1.7rem);
+    border: 2px solid transparent;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    display: flex; align-items: center; gap: 12px;
+    flex-direction: column;
+  }
+  .result-card .rc-top { display: flex; align-items: center; gap: 12px; }
+  .result-card .start-quiz-btn {
+    margin-top: 6px;
+    background: #fff;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 100px;
+    padding: 8px 22px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+  .start-quiz-btn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.5) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .result-card.math       { border-color: var(--math);    color: var(--math);    box-shadow: 0 0 30px rgba(255,107,107,.3); }
+  .result-card.lecture    { border-color: var(--reading); color: var(--reading); box-shadow: 0 0 30px rgba(78,205,196,.3); }
+  .result-card.geographie { border-color: var(--geo);     color: var(--geo);     box-shadow: 0 0 30px rgba(255,230,109,.3); }
+  .result-card.surprise   { border-color: var(--surprise);color: var(--surprise);box-shadow: 0 0 30px rgba(192,132,252,.3); }
+  .result-card.astronomie { border-color: var(--astro);   color: var(--astro);   box-shadow: 0 0 30px rgba(96,175,255,.3); }
+  .result-card.animaux    { border-color: var(--animaux); color: var(--animaux); box-shadow: 0 0 30px rgba(107,203,119,.3); }
+  .result-card.arabe      { border-color: var(--arabe);   color: var(--arabe);   box-shadow: 0 0 30px rgba(245,158,11,.3); }
+
+  .result-emoji { font-size: 1.8rem; }
+
+  .legend {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 440px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--card);
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 0.78rem; font-weight: 700;
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed; width: 10px; height: 10px; border-radius: 2px;
+    top: -20px; animation: fall linear forwards; z-index: 999; pointer-events: none;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+  /* ── QUIZ SCREEN ── */
+  #quizScreen {
+    padding: 24px;
+    gap: 0;
+    justify-content: flex-start;
+  }
+
+  .quiz-header {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    margin-top: 16px;
+  }
+
+  .back-btn {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.12); transform: scale(1.04); }
+
+  .quiz-cat-badge {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    padding: 8px 20px;
+    border-radius: 50px;
+    border: 2px solid currentColor;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex; gap: 8px; margin-bottom: 24px;
+  }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transition: background 0.3s;
+  }
+  .dot.done  { background: #4ade80; }
+  .dot.wrong { background: #f87171; }
+  .dot.current { background: #fff; }
+
+  /* Question card */
+  .question-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 28px 24px;
+    max-width: 620px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.5;
+    margin-bottom: 10px;
+  }
+
+  .question-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.2rem, 4vw, 1.6rem);
+    line-height: 1.3;
+    margin-bottom: 24px;
+  }
+
+  .choices {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .choice-btn {
+    background: rgba(255,255,255,0.07);
+    border: 2px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s, border-color 0.18s, transform 0.12s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .choice-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.14);
+    transform: translateX(4px);
+  }
+  .choice-btn:disabled { cursor: not-allowed; }
+  .choice-btn.correct {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: #4ade80;
+    color: #4ade80;
+  }
+  .choice-btn.wrong {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+    color: #f87171;
+  }
+  .choice-letter {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  /* Question image (illustration or image-as-question) */
+  .question-image-wrap {
+    margin: 0 auto 18px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .question-image-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Image-options grid (2×2) */
+  .choices.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .choice-btn.img {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 8px;
+    gap: 0;
+  }
+  .choice-btn.img:hover:not(:disabled) {
+    background: rgba(255,255,255,0.14);
+    transform: translateY(-2px);
+  }
+  .choice-btn.img .img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .choice-btn.img .img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .choice-btn.img .cap {
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding-bottom: 6px;
+  }
+
+  /* Feedback bar */
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.correct { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .feedback.wrong   { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  /* Next / finish button */
+  .next-btn {
+    margin-top: 16px;
+    display: none;
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background: #fff;
+    color: #1a1a2e;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .next-btn.show { display: block; }
+  .next-btn:hover { transform: scale(1.03); box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
+
+  /* ── SCORE SCREEN ── */
+  #milestoneScreen { gap: 24px; padding: 24px; text-align: center; }
+
+  .score-emoji { font-size: 5rem; animation: bounce 0.6s ease both; }
+  @keyframes bounce {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .score-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+  }
+
+  .score-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+  }
+
+  .score-sub { opacity: 0.6; font-size: 1rem; }
+
+  .score-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+
+  .btn-primary {
+    padding: 14px 32px;
+    border-radius: 100px;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.05rem;
+    cursor: pointer;
+    background: #fff;
+    color: #1a1a2e;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-primary:hover { transform: scale(1.05); box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
+
+  .btn-secondary {
+    padding: 14px 32px;
+    border-radius: 100px;
+    border: 2px solid rgba(255,255,255,0.25);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.05rem;
+    cursor: pointer;
+    background: transparent;
+    color: #fff;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
