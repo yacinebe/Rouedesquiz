@@ -31,13 +31,11 @@ Under-the-hood: architecture, tooling, asset pipeline, deploy, refactors, tech d
 | T-17 | **One-file vs per-theme question files** — split `questions.js` as it grows (moot if content moves to a DB). | S | Low | — | Todo |
 | T-18 | **vercel.json cache headers** — long-cache immutable assets, no-cache HTML (only if front-end stays on Vercel). | S | Low | — | Todo |
 | T-19 | **Retire `questions.js` — single source of truth** — the DB is now a cache seeded from `questions.js`; two copies of the content is undesirable. Once the DB is authoritative (an authoring path that isn't this file) and offline/`file://` play is dropped or served another way, delete the static bank + its fallback in `index.html`. *(user: dislikes dual source of truth)* | M | Med | authoring path (T-08 / admin UI) + offline decision | Todo |
+| T-20 | **Split `quiz-wheel.html` → `index.html` + `questions.js`** — questions exposed as `window.QUIZ_DATA`, loadable with no build step. | — | — | — | Done |
+| T-21 | **No-build vanilla HTML/JS/CSS** — runs from `file://` and Vercel `https`; no bundler, no framework. | — | — | — | Done |
+| T-22 | **Image plumbing** — `image` / `optionImages` fields with conditional layout + graceful `onerror` hide. | — | — | — | Done |
+| T-23 | **Question images on a Cloudflare Worker CDN** — migrated to `quiz-images.…workers.dev`. | — | — | — | Done |
+| T-24 | **Per-theme idempotent image-fetch scripts** — `tools/fetch-<theme>.ps1`, re-runnable. | — | — | — | Done |
+| T-25 | **Vercel deploy via GitHub auto-deploy** — repointed from the wrong twin repo; auto-deploy from `main` confirmed. | — | — | — | Done |
 
 > **Superseded / folded:** the old "authoring/admin page" idea is absorbed by T-06 (generation) + T-07 (review UI). `T-02` (missing-image upload) is folded into F-08 / T-06.
-
-## Shipped
-- ✓ Split `quiz-wheel.html` → `index.html` + `questions.js` (`window.QUIZ_DATA`).
-- ✓ No-build vanilla HTML/JS/CSS; runs from `file://` and Vercel `https`.
-- ✓ Image plumbing: `image` / `optionImages` with conditional layout + graceful `onerror` hide.
-- ✓ Question images migrated to a Cloudflare Worker CDN (`quiz-images.…workers.dev`).
-- ✓ Per-theme idempotent image-fetch scripts (`tools/fetch-<theme>.ps1`).
-- ✓ Vercel deploy via GitHub auto-deploy — repointed from the wrong twin repo; auto-deploy from `main` confirmed.

@@ -33,11 +33,12 @@ Player-facing behavior & content. Under-the-hood work lives in [BACKLOG_TECHNICA
 | F-17 | **Multiplayer / contest** — play with friends; async (compare later) or real-time head-to-head. *(idea #8)* | XL | Low | F-16, T-03, T-05 | Todo |
 | F-18 | **Audio-prompt questions** — sound *is* the prompt (animal sounds, Arabic pronunciation). | L | Low | T-15 | Todo |
 | F-19 | **Surprise theme special behavior** — keep "random theme" or make it silly/jokes/mini-game. | M | Low | — | Todo |
-
-## Shipped
-- ✓ 7-theme spinning wheel (Maths, Lecture, Géographie, Astronomie, Animaux, Arabe, Surprise), one wedge each.
-- ✓ Click a wheel slice to select a theme directly (no spin).
-- ✓ 3 questions per spin; end-of-session score screen with emoji feedback (per-session).
-- ✓ Text MCQ + image formats (illustration, image-as-question, 2×2 image-option grid).
-- ✓ 700 questions across 7 themes (≈175 facile / 350 moyen / 175 difficile).
-- ✓ 792 / 910 question images sourced (French Wikipedia), graceful hide-on-missing.
+| F-27 | **Translate everything to English** — full i18n: language toggle + translated UI chrome + English question content. This first translation establishes the i18n plumbing (string catalog + per-language question sets). *(the ~700 questions are the bulk of the effort)* | L | Med | — | Todo |
+| F-28 | **Translate everything to Arabic** — Arabic UI + question content, **plus right-to-left (RTL) layout**. Reuses F-27's i18n plumbing. (Distinct from the existing `Arabe` learning theme, which teaches Arabic letters/words within the French app.) | L | Med | F-27 | Todo |
+| F-29 | **Funny sound & music** — playful kid audio for key moments: intro/menu, correct answer, wrong answer, win/perfect, lose/encourage; plus a mute toggle. Absorbs the "sound" half of F-05. | M | High | — | Todo |
+| F-21 | **7-theme spinning wheel** — Maths, Lecture, Géographie, Astronomie, Animaux, Arabe, Surprise; one wedge each. | — | — | — | Done |
+| F-22 | **Click a wheel slice to select a theme** — direct pick, no spin. | — | — | — | Done |
+| F-23 | **3 questions per spin + score screen** — end-of-session score with emoji feedback. | — | — | — | Done |
+| F-24 | **Text MCQ + image question formats** — illustration, image-as-question, 2×2 image-option grid. | — | — | — | Done |
+| F-25 | **700 questions across 7 themes** — ≈175 facile / 350 moyen / 175 difficile. | — | — | — | Done |
+| F-26 | **792 / 910 question images sourced** — French Wikipedia, graceful hide-on-missing. | — | — | — | Done |

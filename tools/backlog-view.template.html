@@ -52,7 +52,7 @@
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
   }
 
-  /* track color scoping — used on rows, notes, dep chips, shipped groups */
+  /* track color scoping — used on rows, notes, dep chips */
   .trk-functional { --accent: var(--accent-fn); --accent-soft: var(--accent-fn-soft); }
   .trk-technical  { --accent: var(--accent-tc); --accent-soft: var(--accent-tc-soft); }
 
@@ -154,18 +154,6 @@
   .legend .swatch { display: inline-flex; align-items: center; gap: 5px; }
   .legend .sq { width: 11px; height: 11px; border-radius: 3px; }
 
-  /* shipped */
-  details.shipped { margin-top: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px 18px; }
-  details.shipped summary { cursor: pointer; font-weight: 700; padding: 12px 0; list-style: none; display: flex; align-items: center; gap: 8px; }
-  details.shipped summary::-webkit-details-marker { display: none; }
-  details.shipped summary .caret { transition: transform .2s; color: var(--muted); }
-  details.shipped[open] summary .caret { transform: rotate(90deg); }
-  .ship-group { margin: 4px 0 14px; }
-  .ship-group h3 { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin: 8px 0 8px; }
-  .ship-group ul { margin: 0; padding-left: 4px; list-style: none; display: grid; gap: 7px; }
-  .ship-group li { color: var(--muted); font-size: .89rem; padding-left: 22px; position: relative; }
-  .ship-group li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 800; }
-
   @media (max-width: 680px) { td.item .d { display: none; } .showing { margin-left: 0; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -199,6 +187,10 @@
       <button data-pri="Med" aria-pressed="false">Med</button>
       <button data-pri="Low" aria-pressed="false">Low</button>
     </div>
+    <div class="fgroup" id="f-done">
+      <span class="lbl">Done</span>
+      <button id="doneToggle" aria-pressed="false">Show done</button>
+    </div>
     <span class="showing" id="showing"></span>
   </div>
 
@@ -224,10 +216,6 @@
     <div class="grp"><strong>Status</strong> <span class="st Todo">Todo</span> <span class="st Inprogress">In progress</span> <span class="st Blocked">Blocked</span> <span class="st Done">Done</span></div>
   </div>
 
-  <details class="shipped">
-    <summary><span class="caret">▸</span> <span id="ship-title">Shipped</span></summary>
-    <div id="shipped-body"></div>
-  </details>
 </div>
 
 <script>
@@ -235,7 +223,7 @@ const DATA = /*__DATA__*/ {};
 const ITEMS = DATA.items || [];
 const IDSET = new Set(ITEMS.map(i => i.id));
 const SEQ = new Map(ITEMS.map(i => [i.id, i.seq]));
-let fTrack = 'all', fPri = 'all';
+let fTrack = 'all', fPri = 'all', showDone = false;
 
 function statusClass(s) { return s.replace(/\s+/g, ''); }
 function depChip(d, selfSeq) {
@@ -258,25 +246,31 @@ function rowHtml(it) {
 }
 
 function renderRows() {
-  const items = ITEMS.filter(i => (fTrack === 'all' || i.track === fTrack) && (fPri === 'all' || i.priority === fPri));
+  const items = ITEMS.filter(i =>
+    (fTrack === 'all' || i.track === fTrack) &&
+    (fPri === 'all' || i.priority === fPri) &&
+    (showDone || i.status !== 'Done'));
   const tb = document.getElementById('rows');
   tb.innerHTML = items.length ? items.map(rowHtml).join('') : `<tr class="empty"><td colspan="7">No items match this filter.</td></tr>`;
   const bits = [];
   if (fTrack !== 'all') bits.push(fTrack);
   if (fPri !== 'all') bits.push(fPri + ' priority');
-  document.getElementById('showing').innerHTML = `<b>${items.length}</b> of ${ITEMS.length}` + (bits.length ? ' · ' + bits.join(' · ') : '');
+  if (!showDone) bits.push('done hidden');
+  const denom = showDone ? ITEMS.length : ITEMS.filter(i => i.status !== 'Done').length;
+  document.getElementById('showing').innerHTML = `<b>${items.length}</b> of ${denom}` + (bits.length ? ' · ' + bits.join(' · ') : '');
 }
 
 function renderTiles() {
-  const fn = ITEMS.filter(i => i.track === 'functional').length;
-  const tc = ITEMS.filter(i => i.track === 'technical').length;
-  const by = p => ITEMS.filter(i => i.priority === p).length;
-  const ready = ITEMS.filter(i => !i.deps.some(d => IDSET.has(d))).length;
-  const shipped = (DATA.shipped.functional.length + DATA.shipped.technical.length);
+  const OPEN = ITEMS.filter(i => i.status !== 'Done');
+  const fn = OPEN.filter(i => i.track === 'functional').length;
+  const tc = OPEN.filter(i => i.track === 'technical').length;
+  const by = p => OPEN.filter(i => i.priority === p).length;
+  const ready = OPEN.filter(i => !i.deps.some(d => IDSET.has(d))).length;
+  const done = ITEMS.filter(i => i.status === 'Done').length;
   const tiles = [
     ['fn', fn, 'Functional'], ['tc', tc, 'Technical'],
     ['', by('High'), 'High'], ['', by('Med'), 'Med'], ['', by('Low'), 'Low'],
-    ['', ready, 'No blockers'], ['', shipped, 'Shipped'],
+    ['', ready, 'No blockers'], ['', done, 'Done'],
   ];
   document.getElementById('tiles').innerHTML = tiles.map(([c,n,l]) => `<div class="tile ${c}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
 }
@@ -287,14 +281,6 @@ function renderNotes() {
     DATA.notes[k] ? `<div class="note trk-${k}"><span class="tag">${label}</span>${DATA.notes[k]}</div>` : '').join('');
 }
 
-function renderShipped() {
-  const groups = [['functional','Functional'], ['technical','Technical']];
-  const total = DATA.shipped.functional.length + DATA.shipped.technical.length;
-  document.getElementById('ship-title').textContent = `Shipped (${total})`;
-  document.getElementById('shipped-body').innerHTML = groups.map(([k,label]) =>
-    `<div class="ship-group trk-${k}"><h3>${label}</h3><ul>${DATA.shipped[k].map(s => `<li>${s}</li>`).join('')}</ul></div>`).join('');
-}
-
 document.querySelectorAll('#f-track button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#f-track button').forEach(x => x.setAttribute('aria-pressed', 'false'));
   b.setAttribute('aria-pressed', 'true'); fTrack = b.dataset.track; renderRows();
@@ -303,14 +289,22 @@ document.querySelectorAll('#f-pri button').forEach(b => b.addEventListener('clic
   document.querySelectorAll('#f-pri button').forEach(x => x.setAttribute('aria-pressed', 'false'));
   b.setAttribute('aria-pressed', 'true'); fPri = b.dataset.pri; renderRows();
 }));
+const doneToggle = document.getElementById('doneToggle');
+doneToggle.addEventListener('click', () => {
+  showDone = !showDone;
+  doneToggle.setAttribute('aria-pressed', String(showDone));
+  doneToggle.textContent = showDone ? 'Hide done' : 'Show done';
+  renderRows();
+});
 
-const fnN = ITEMS.filter(i => i.track === 'functional').length;
-const tcN = ITEMS.filter(i => i.track === 'technical').length;
+const OPEN = ITEMS.filter(i => i.status !== 'Done');
+const fnN = OPEN.filter(i => i.track === 'functional').length;
+const tcN = OPEN.filter(i => i.track === 'technical').length;
 document.getElementById('overview').innerHTML =
-  `<b>${ITEMS.length}</b> open items, one ordered plan · <span class="fn">${fnN} functional</span> · <span class="tc">${tcN} technical</span>`;
+  `<b>${OPEN.length}</b> open items, one ordered plan · <span class="fn">${fnN} functional</span> · <span class="tc">${tcN} technical</span>`;
 document.getElementById('stamp').textContent = DATA.generatedAt ? ('Sorted: dependencies first, then priority · generated ' + DATA.generatedAt) : '';
 
-renderNotes(); renderTiles(); renderRows(); renderShipped();
+renderNotes(); renderTiles(); renderRows();
 </script>
 
 </body>

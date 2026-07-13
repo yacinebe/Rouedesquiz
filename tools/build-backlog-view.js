@@ -28,6 +28,7 @@ const SOURCES = {
   technical:  { file: 'BACKLOG_TECHNICAL.md',  accent: '#0E8E7C', accentSoft: '#D8F0EB' },
 };
 const PRI_RANK = { High: 0, Med: 1, Low: 2 };
+const pri = p => PRI_RANK[p] ?? 3; // '—' (Done rows) sorts last
 
 // --- minimal inline markdown -> HTML (escape first, then bold/code/italic) ---
 function esc(s) {
@@ -98,7 +99,7 @@ function logicalOrder(items) {
   }
 
   // effective urgency: a task is at least as urgent as the most urgent thing it unblocks
-  const eff = new Map(items.map(i => [i.id, PRI_RANK[i.priority]]));
+  const eff = new Map(items.map(i => [i.id, pri(i.priority)]));
   let changed = true;
   while (changed) {
     changed = false;
@@ -119,7 +120,7 @@ function logicalOrder(items) {
       const A = byId.get(a), B = byId.get(b);
       return (eff.get(a) - eff.get(b))                            // effective urgency
         || (dependents.get(b) - dependents.get(a))               // unblock more first
-        || (PRI_RANK[A.priority] - PRI_RANK[B.priority])         // own priority
+        || (pri(A.priority) - pri(B.priority))                   // own priority
         || (A.track === B.track ? 0 : A.track === 'functional' ? -1 : 1)
         || a.localeCompare(b, undefined, { numeric: true });
     });
@@ -133,7 +134,7 @@ function logicalOrder(items) {
 function build() {
   if (!fs.existsSync(TEMPLATE)) { console.error(`Template not found: ${TEMPLATE}`); process.exit(1); }
 
-  const data = { generatedAt: new Date().toISOString().slice(0, 10), accents: {}, notes: {}, shipped: {} };
+  const data = { generatedAt: new Date().toISOString().slice(0, 10), accents: {}, notes: {} };
   const all = [];
   for (const [key, cfg] of Object.entries(SOURCES)) {
     const p = path.join(ROOT, cfg.file);
@@ -142,9 +143,9 @@ function build() {
     if (!parsed.items.length) { console.error(`No table rows parsed from ${cfg.file}.`); process.exit(1); }
     data.accents[key] = { accent: cfg.accent, accentSoft: cfg.accentSoft };
     data.notes[key] = parsed.note;
-    data.shipped[key] = parsed.shipped;
     all.push(...parsed.items);
-    console.log(`  ${cfg.file}: ${parsed.items.length} items, ${parsed.shipped.length} shipped`);
+    const done = parsed.items.filter(i => i.status === 'Done').length;
+    console.log(`  ${cfg.file}: ${parsed.items.length} items (${done} done)`);
   }
 
   const ordered = logicalOrder(all);
