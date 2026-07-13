@@ -46,7 +46,7 @@ A French educational quiz game for ages 5–7 (MS/GS/CP/CE1), built around a spi
 - **Hosting:** **Vercel** for public/shareable URL **+ local file** for offline play. App must run from both contexts.
 - **Media assets:** dedicated `assets/` folder for theme illustrations, question images, and (later) audio.
 - **No build step (for now):** plain HTML/JS/CSS, no bundler, no framework. Reassess if/when needed.
-- ~~**No backend.**~~ **Superseded by the v2 pivot (T-03).** A Supabase backend now provides anonymous auth, per-child profiles, and durable progress. The browser talks to Supabase directly (no server code); Row-Level Security protects data. The `supabase-js` client loads via ESM CDN import, so the no-build rule still holds. `questions.js` remains an **offline fallback** for content, but online features (auth, progress, DB-served questions) require connectivity and won't run from `file://`. Config lives in [assets/js/db.js](assets/js/db.js); schema in [supabase/schema.sql](supabase/schema.sql).
+- ~~**No backend.**~~ **Superseded by the v2 pivot (T-03).** A Supabase backend now provides anonymous auth, per-child profiles, and durable progress. The browser talks to Supabase directly (no server code); Row-Level Security protects data. The `supabase-js` client loads via ESM CDN import, so the no-build rule still holds. `questions.js` remains an **offline fallback** for content, but online features (auth, progress, DB-served questions) require connectivity and won't run from `file://`. Front-end code lives in `src/` (ES modules) with styles in `src/styles/`; the Supabase config + data helpers are in [src/db.js](src/db.js); schema in [supabase/schema.sql](supabase/schema.sql).
 
 ### 2.2 Tentative project layout
 
