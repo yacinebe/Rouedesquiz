@@ -23,12 +23,12 @@ Player-facing behavior & content. Under-the-hood work lives in [BACKLOG_TECHNICA
 | F-07 | **Mascot companion** — a character that reacts (cheers, "essaie encore"); the concrete form of the old "funny pass". *(my idea D-b)* | M | Med | — | Todo |
 | F-08 | **Finish question images** — 118 / 910 referenced images don't exist yet; source or generate them. | M | Med | — | Todo |
 | F-09 | **Theme illustrations** — custom picture per theme on the wheel wedge + category badge. | M | Med | user art | Todo |
-| F-10 | **Player profile + progress** — per-theme best scores, streaks, history that persists. Profiles + durable per-question/per-session logging shipped; per-theme record shown on the score screen. *(idea #2, absorbs old F-06)* | M | Med | T-05 | In progress |
+| F-10 | **Player profile + progress** — per-theme best scores, streaks, history that persists. Profiles + durable logging shipped; **progress page** (per-theme answered / accuracy / bonnes) and **live in-game score** under the player name shipped. *(idea #2, absorbs old F-06)* | M | Med | T-05 | In progress |
 | F-11 | **Rewards, stickers & avatar** — collectibles/avatar earned by playing; return-driver for a 5-year-old. *(my idea D-c)* | M | Med | F-10 | Todo |
 | F-12 | **Adaptive difficulty** — auto-nudge level from recent performance. *(my idea D-d)* | M | Low | F-03 | Todo |
 | F-13 | **Voice answering** — child speaks the answer; STT interprets & checks it. Hands-free with F-01. *(idea #4)* | L | Low | T-09, T-10 | Todo |
 | F-14 | **Advanced (open-ended) mode** — pick a theme → harder question with no multiple-choice options. *(idea #7)* | M | Low | F-20, T-09 | Todo |
-| F-15 | **Session modes** — beyond 3/spin: a longer "marathon" or timed "défi". | M | Low | — | Todo |
+| F-15 | **Session modes** — ~~beyond 3/spin~~: the loop is now an **endless run per theme with a milestone every 10** (continue / back to wheel), replacing the fixed 3-per-spin. Timed "défi" mode still open. | M | Low | — | In progress |
 | F-16 | **Leaderboard** — compare scores across players. *(idea #2)* | M | Low | F-10, T-05 | Todo |
 | F-17 | **Multiplayer / contest** — play with friends; async (compare later) or real-time head-to-head. *(idea #8)* | XL | Low | F-16, T-03, T-05 | Todo |
 | F-18 | **Audio-prompt questions** — sound *is* the prompt (animal sounds, Arabic pronunciation). | L | Low | T-15 | Todo |
@@ -36,6 +36,7 @@ Player-facing behavior & content. Under-the-hood work lives in [BACKLOG_TECHNICA
 | F-27 | **Translate everything to English** — full i18n: language toggle + translated UI chrome + English question content. This first translation establishes the i18n plumbing (string catalog + per-language question sets). *(the ~700 questions are the bulk of the effort)* | L | Med | — | Todo |
 | F-28 | **Translate everything to Arabic** — Arabic UI + question content, **plus right-to-left (RTL) layout**. Reuses F-27's i18n plumbing. (Distinct from the existing `Arabe` learning theme, which teaches Arabic letters/words within the French app.) | L | Med | F-27 | Todo |
 | F-29 | **Funny sound & music** — playful kid audio for key moments: intro/menu, correct answer, wrong answer, win/perfect, lose/encourage; plus a mute toggle. Absorbs the "sound" half of F-05. | M | High | — | Todo |
+| F-30 | **"Révise tes erreurs" (replay failed)** — from the progress page, replay per-theme the questions whose most recent attempt was wrong. Shipped. *(new — user request)* | M | Med | F-10 | Done |
 | F-21 | **7-theme spinning wheel** — Maths, Lecture, Géographie, Astronomie, Animaux, Arabe, Surprise; one wedge each. | — | — | — | Done |
 | F-22 | **Click a wheel slice to select a theme** — direct pick, no spin. | — | — | — | Done |
 | F-23 | **3 questions per spin + score screen** — end-of-session score with emoji feedback. | — | — | — | Done |
