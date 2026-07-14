@@ -46,10 +46,10 @@ function renderWheel(context, size, angle, labels) {
       context.fillStyle = seg.dark;
       context.fillText(seg.label, r - 42, 6);
     } else {
-      // Decorative welcome wheel: one big theme emoji centred in each wedge.
+      // Decorative welcome wheel: one theme emoji centred in each wedge.
       context.textAlign = 'center';
-      context.font = `${size * 0.14}px serif`;
-      context.fillText(seg.emoji, r * 0.6, size * 0.05);
+      context.font = `${size * 0.105}px serif`;
+      context.fillText(seg.emoji, r * 0.6, size * 0.04);
     }
     context.restore();
   }
@@ -67,10 +67,45 @@ function drawWheel(angle) {
   renderWheel(ctx, SIZE, angle, true);
 }
 
-// Static decorative wheel for the welcome screen.
+// Decorative welcome wheel: a playful 4-bounce entrance, then an endless spin.
+// One persistent rAF loop; it only redraws while the welcome screen is active
+// (cheap no-op otherwise) and replays the bounce each time you return to it.
+let welcomeRAF = null;
 export function paintWelcome() {
   const c = document.getElementById('welcomeWheel');
-  if (c) renderWheel(c.getContext('2d'), c.width, 0, false);
+  if (!c || welcomeRAF) return;                 // already running
+  const wctx = c.getContext('2d');
+  const BOUNCE_MS = 1500;                        // entrance duration
+  const BOUNCES   = 4;                           // number of bounces
+  const AMP_Y     = 46;                          // px, first vertical bounce height
+  const AMP_X     = 190;                         // px, first sideways sway
+  const SPEED     = 0.7;                         // rad/s spin after landing (~9s/turn)
+  let wasActive = false, t0 = 0;
+
+  function loop(now) {
+    const screen = document.getElementById('welcomeScreen');
+    const active = !!(screen && screen.classList.contains('active'));
+    if (active) {
+      if (!wasActive) t0 = now;                  // (re)start the entrance on each entry
+      const elapsed = now - t0;
+      let x = 0, y = 0, angle = 0;
+      if (elapsed < BOUNCE_MS) {
+        // 4 bounces of decreasing height + an alternating left/right sway,
+        // both landing exactly at 0.
+        const p = elapsed / BOUNCE_MS;                       // 0→1
+        const env = Math.pow(1 - p, 1.3);                    // shrinking amplitude
+        y = -AMP_Y * env * Math.abs(Math.sin(Math.PI * BOUNCES * p));
+        x =  AMP_X * env * Math.sin(Math.PI * BOUNCES * p);  // signed → leans L then R
+      } else {
+        angle = ((elapsed - BOUNCE_MS) / 1000) * SPEED;      // spin once landed
+      }
+      c.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
+      renderWheel(wctx, c.width, angle, false);
+    }
+    wasActive = active;
+    welcomeRAF = requestAnimationFrame(loop);
+  }
+  welcomeRAF = requestAnimationFrame(loop);
 }
 
 function getWinner(angle) {

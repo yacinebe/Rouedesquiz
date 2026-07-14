@@ -46,13 +46,6 @@ async function renderProfiles() {
   const manageBtn = document.getElementById('manageBtn');
   listEl.innerHTML = '';
 
-  // + Nouveau — always first.
-  const add = document.createElement('button');
-  add.className = 'profile-btn add';
-  add.innerHTML = `<span class="avatar">➕</span><span>Nouveau</span>`;
-  add.onclick = openCreate;
-  listEl.appendChild(add);
-
   for (const p of profiles) {
     const age = ageFrom(p.birthdate);
     const btn = document.createElement('button');
@@ -69,6 +62,13 @@ async function renderProfiles() {
     };
     listEl.appendChild(btn);
   }
+
+  // + Nouveau — always last.
+  const add = document.createElement('button');
+  add.className = 'profile-btn add';
+  add.innerHTML = `<span class="avatar">➕</span><span>Nouveau</span>`;
+  add.onclick = openCreate;
+  listEl.appendChild(add);
 
   hintEl.textContent = profiles.length
     ? 'Touche ton personnage pour jouer.'
