@@ -2,7 +2,7 @@
 // Once signed in, the account's profiles (the kids) become available.
 import {
   getAuthUser, signUp, signInPassword, signOut, onAuthChange,
-  resetPassword, updatePassword
+  resetPassword, updatePassword, getFamilyName
 } from './db.js';
 import { showScreen } from './ui.js';
 import { refreshProfiles, resetCurrent } from './profiles.js';
@@ -26,12 +26,14 @@ async function doSignIn() {
 }
 
 async function doSignUp() {
+  const family = document.getElementById('suFamily').value.trim();
   const email = document.getElementById('suEmail').value.trim();
   const password = document.getElementById('suPassword').value;
+  if (!family) { setMsg('suMsg', 'Donne un nom à ta famille.'); return; }
   if (!email || !email.includes('@')) { setMsg('suMsg', 'Entre un email valide.'); return; }
   if (password.length < 6) { setMsg('suMsg', 'Mot de passe : 6 caractères minimum.'); return; }
   setMsg('suMsg', 'Création…', true);
-  const res = await signUp(email, password);
+  const res = await signUp(email, password, family);
   if (res.error) { setMsg('suMsg', res.error); return; }
   if (res.needsConfirm) setMsg('suMsg', '📧 Vérifie tes emails pour confirmer, puis connecte-toi.', true);
   // else onAuthChange routes to the profiles
@@ -70,11 +72,19 @@ function wireEyes() {
   });
 }
 
+// Show the profiles for the signed-in account (with its family name).
+async function goProfiles() {
+  await refreshProfiles();
+  const el = document.getElementById('familyName');
+  if (el) el.textContent = await getFamilyName();
+  showScreen('profileScreen');
+}
+
 // Send the app to the right screen for the current session.
 async function route() {
   if (location.hash.includes('type=recovery')) { recovering = true; showScreen('resetScreen'); return; }
   const user = await getAuthUser();
-  if (user) { await refreshProfiles(); showScreen('profileScreen'); }
+  if (user) await goProfiles();
   else showScreen('welcomeScreen');
 }
 
@@ -97,8 +107,7 @@ export async function initAuth() {
     if (event === 'PASSWORD_RECOVERY') { recovering = true; showScreen('resetScreen'); return; }
     if (recovering && event === 'SIGNED_IN') return;   // stay on the reset screen
     if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-      refreshProfiles();
-      showScreen('profileScreen');
+      goProfiles();
     } else if (event === 'SIGNED_OUT') {
       resetCurrent();
       showScreen('welcomeScreen');

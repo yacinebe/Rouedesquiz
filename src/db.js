@@ -47,10 +47,11 @@ function friendlyAuthError(error) {
 // Create a new account. If "Confirm email" is ON in Supabase, no session is
 // returned until the user confirms (needsConfirm: true); if OFF, they're
 // signed in immediately.
-export async function signUp(email, password) {
+export async function signUp(email, password, familyName) {
   try {
     const { data, error } = await supabase.auth.signUp({
-      email, password, options: { emailRedirectTo: redirectTo() }
+      email, password,
+      options: { emailRedirectTo: redirectTo(), data: { family_name: familyName } }
     });
     if (error) return { error: friendlyAuthError(error) };
     return { needsConfirm: !data.session };
@@ -58,6 +59,12 @@ export async function signUp(email, password) {
     console.warn('[db] signUp failed:', e);
     return { error: OFFLINE };
   }
+}
+
+// The signed-in account's family name (from user metadata), or ''.
+export async function getFamilyName() {
+  const u = await getAuthUser();
+  return (u && u.user_metadata && u.user_metadata.family_name) || '';
 }
 
 export async function signInPassword(email, password) {

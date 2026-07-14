@@ -52,6 +52,7 @@
   /* ── PROFILE SCREEN ── */
   #profileScreen { gap: 22px; padding: 24px; text-align: center; }
   .profile-title { font-family: 'Fredoka One', cursive; font-size: 1.9rem; }
+  .family-name { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: .04em; text-transform: uppercase; color: #FFE66D; opacity: .85; }
   .profile-list { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 520px; }
   .profile-btn {
     padding: 16px 22px; border-radius: 22px;

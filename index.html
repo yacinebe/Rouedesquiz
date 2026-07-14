@@ -48,6 +48,9 @@
     <div class="quiz-cat-badge" style="color:#FFE66D;border-color:#FFE66D">Inscription</div>
   </div>
   <form class="profile-form auth-form" id="signUpForm">
+    <label>Nom de la famille
+      <input id="suFamily" type="text" autocomplete="off" maxlength="40" placeholder="Ex : Famille Berrada" required>
+    </label>
     <label>Email
       <input id="suEmail" type="email" inputmode="email" autocomplete="email" required>
     </label>
@@ -84,6 +87,7 @@
 
 <!-- ══════════════ PROFILE SCREEN ══════════════ -->
 <div id="profileScreen" class="screen">
+  <div class="family-name" id="familyName"></div>
   <div class="profile-title">🎈 Qui joue ? 🎈</div>
   <div class="profile-list" id="profileList">
     <div class="profile-loading">Chargement…</div>
