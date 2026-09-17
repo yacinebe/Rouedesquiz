@@ -144,6 +144,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div>Arabe</div>
     <div class="legend-item"><div class="legend-dot" style="background:#C084FC"></div>⭐ Surprise !</div>
   </div>
+  <button class="mv-entry-btn" id="mvEntryBtn" style="display:none">✨ Mode Merveilleux 🦄</button>
   <button class="btn-secondary" id="progressBtn">📊 Mes progrès</button>
 </div>
 
@@ -196,6 +197,18 @@
     <span class="cp-score"></span>
   </span>
   <span class="cp-switch">changer</span>
+</div>
+
+<!-- Mode Merveilleux — unlock celebration popup (F-31) -->
+<div id="mvPopup" class="mv-popup-overlay" style="display:none">
+  <div class="mv-popup">
+    <div class="mv-popup-emoji">🦄✨</div>
+    <div class="mv-popup-title">Tu as débloqué le<br>Mode Merveilleux ! 🦄</div>
+    <div class="mv-popup-actions">
+      <button class="btn-primary" id="mvPlayNow">Jouer maintenant</button>
+      <button class="btn-secondary" id="mvLater">Plus tard</button>
+    </div>
+  </div>
 </div>
 
 <script src="questions.js"></script>

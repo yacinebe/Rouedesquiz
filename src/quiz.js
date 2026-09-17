@@ -7,6 +7,8 @@ import { SEGMENTS } from './segments.js';
 
 // Surprise draws from every other theme, in equal shares — each question
 // keeps a tag back to its real theme so it can still be shown/answered correctly.
+// merveilleux is deliberately not in SEGMENTS (see below), so it's naturally
+// excluded from this mix too.
 const SURPRISE_SOURCES = SEGMENTS.filter(s => s.cls !== 'surprise');
 
 const MILESTONE = 10;                 // questions per milestone
@@ -19,6 +21,16 @@ let answered = false;
 let endless = true;                   // false during "revise mistakes" replay
 let runTheme = null, runColor = '#FFE66D', runLabel = '';
 let runLogged = false;
+
+// ── Mode Merveilleux (F-31): a bonus theme unlocked by a 10-answer streak. ──
+// Not a wheel wedge (kept out of SEGMENTS on purpose — it's entered via a
+// button next to the wheel instead, so the 7-slice wheel geometry and the
+// Surprise mix stay untouched). Streak + unlock are session-only (in memory,
+// lost on reload/sign-out) — no database change.
+const STREAK_TARGET = 10;
+const MERVEILLEUX_SEG = { label: 'Merveilleux', emoji: '🦄', color: '#FF9BEE', cls: 'merveilleux' };
+let sessionStreak = 0;
+let merveilleuxUnlocked = false;
 
 export async function startQuiz(seg) {
   if (!seg) return;
@@ -63,6 +75,7 @@ export function beginRun({ theme, label, color, emoji, cls, pool, endless: isEnd
   badge.className = 'quiz-cat-badge ' + cls;
   badge.style.color = color;
   badge.style.borderColor = color;
+  document.getElementById('quizScreen').classList.toggle('merveilleux-mode', cls === 'merveilleux');
 
   setBadgeScore();
   showScreen('quizScreen');
@@ -78,10 +91,14 @@ function drawNext() {
   return queue.shift();
 }
 
-// Live score shown under the player's name (top-right badge).
+// Live score (+ streak, subtly) shown under the player's name (top-right badge).
 function setBadgeScore() {
   const el = document.querySelector('#currentPlayer .cp-score');
-  if (el) el.textContent = runCount ? `⭐ ${runScore}/${runCount}` : '';
+  if (!el) return;
+  const parts = [];
+  if (runCount) parts.push(`⭐ ${runScore}/${runCount}`);
+  if (sessionStreak > 0) parts.push(`🔥 ${sessionStreak}`);
+  el.textContent = parts.join('  ');
 }
 
 function renderQuestion() {
@@ -185,6 +202,21 @@ function selectAnswer(chosen) {
   runCount++;
   blockResults.push(isCorrect);
 
+  // Streak: consecutive correct answers across the whole session (endless
+  // runs only — "revise mistakes" replays don't count). A wrong answer
+  // resets it to 0; reaching the target unlocks Mode Merveilleux once.
+  if (endless) {
+    if (isCorrect) {
+      sessionStreak++;
+      if (sessionStreak >= STREAK_TARGET && !merveilleuxUnlocked) {
+        merveilleuxUnlocked = true;
+        unlockMerveilleux();
+      }
+    } else {
+      sessionStreak = 0;
+    }
+  }
+
   // Record the attempt (fire-and-forget; no-ops for guests / offline)
   logAttempt({
     profile_id: getProfileId(),
@@ -269,9 +301,54 @@ export function goToWheel() {
   showScreen('wheelScreen');
 }
 
+// ── Mode Merveilleux unlock (F-31) ──────────────────────────────
+function showMerveilleuxEntry() {
+  const btn = document.getElementById('mvEntryBtn');
+  if (btn) btn.style.display = '';
+}
+
+function unlockMerveilleux() {
+  showMerveilleuxEntry();
+  document.getElementById('mvPopup').style.display = 'flex';
+  launchConfetti(MERVEILLEUX_SEG.color);
+}
+
+function closeMerveilleuxPopup() {
+  document.getElementById('mvPopup').style.display = 'none';
+}
+
+// Jump straight into Mode Merveilleux (from the popup's "Jouer maintenant"
+// or the wheel-screen entry button once unlocked). Finalizes whatever run
+// was in progress first, same as leaving via "Retour à la roue".
+function playMerveilleuxNow() {
+  finalizeRun();
+  closeMerveilleuxPopup();
+  startQuiz(MERVEILLEUX_SEG);
+}
+
+// Reset the in-memory session state (streak + unlock) on sign-out — Mode
+// Merveilleux is a per-session reward, never persisted.
+export function resetPlaySession() {
+  sessionStreak = 0;
+  merveilleuxUnlocked = false;
+  closeMerveilleuxPopup();
+  const btn = document.getElementById('mvEntryBtn');
+  if (btn) btn.style.display = 'none';
+}
+
 export function initQuiz() {
   document.getElementById('nextBtn').addEventListener('click', nextQuestion);
   document.getElementById('msContinue').addEventListener('click', continueRun);
   // every "back to wheel" control (quiz back, progress back, milestone return)
   document.querySelectorAll('[data-action="wheel"]').forEach(b => b.addEventListener('click', goToWheel));
+
+  document.getElementById('mvEntryBtn').addEventListener('click', playMerveilleuxNow);
+  document.getElementById('mvPlayNow').addEventListener('click', playMerveilleuxNow);
+  document.getElementById('mvLater').addEventListener('click', closeMerveilleuxPopup);
+
+  // Dev/testing shortcut: ?streak=9 starts the session streak at 9, so the
+  // unlock can be tested with a single correct answer.
+  const streakParam = new URLSearchParams(location.search).get('streak');
+  const forcedStreak = Number(streakParam);
+  if (streakParam !== null && Number.isFinite(forcedStreak) && forcedStreak >= 0) sessionStreak = forcedStreak;
 }

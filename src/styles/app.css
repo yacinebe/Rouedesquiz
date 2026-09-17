@@ -6,6 +6,7 @@
     --astro:    #60AFFF;
     --animaux:  #6BCB77;
     --arabe:    #F59E0B;
+    --merveilleux: #FF9BEE;
     --bg:       #1a1a2e;
     --card:     #16213e;
     --text:     #f0f0f0;
@@ -575,3 +576,93 @@
     transition: background 0.2s, transform 0.15s;
   }
   .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
+
+  /* ── MODE MERVEILLEUX (F-31) — glowing entry + unlock popup + play skin ── */
+  .mv-entry-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    padding: 12px 28px;
+    border-radius: 100px;
+    border: 2px solid #fff;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, #FF9BEE, #C084FC, #60AFFF, #FFE66D);
+    background-size: 300% 300%;
+    animation: mvGlow 3s ease-in-out infinite, mvGradient 6s ease infinite;
+    transition: transform 0.15s;
+  }
+  .mv-entry-btn:hover { transform: scale(1.05); }
+  @keyframes mvGlow {
+    0%, 100% { box-shadow: 0 0 12px rgba(255,155,238,.6); }
+    50%      { box-shadow: 0 0 26px rgba(255,155,238,.95), 0 0 40px rgba(192,132,252,.6); }
+  }
+  @keyframes mvGradient {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Unlock celebration popup */
+  .mv-popup-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(30, 10, 45, 0.6);
+    backdrop-filter: blur(3px);
+    padding: 20px;
+  }
+  .mv-popup {
+    background: linear-gradient(160deg, #ffe6fa, #fff2cc, #e6f7ff);
+    color: #6b2d8a;
+    border-radius: 28px;
+    padding: 36px 30px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    border: 4px solid #fff;
+    box-shadow: 0 0 50px rgba(255,155,238,.6);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+  .mv-popup-emoji { font-size: 3rem; margin-bottom: 10px; }
+  .mv-popup-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    line-height: 1.35;
+    margin-bottom: 22px;
+  }
+  .mv-popup-actions { display: flex; flex-direction: column; gap: 12px; }
+  /* .btn-secondary is white-on-transparent by default — needs a dark
+     color here since the popup background is light pastel. */
+  .mv-popup .btn-secondary { color: #6b2d8a; border-color: rgba(107,45,138,.4); }
+  .mv-popup .btn-secondary:hover { background: rgba(107,45,138,.08); }
+
+  /* Rainbow/pastel skin while actually playing the Merveilleux theme */
+  #quizScreen.merveilleux-mode .question-card {
+    background: linear-gradient(160deg, #2a1b3d, #3d1f4d 45%, #241640);
+    border: 2px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 40px rgba(255,155,238,.35), 0 0 60px rgba(192,132,252,.25);
+    position: relative;
+    overflow: hidden;
+  }
+  #quizScreen.merveilleux-mode .question-card::before {
+    content: '✨';
+    position: absolute; top: 10px; right: 16px;
+    font-size: 1.4rem; opacity: .8;
+    animation: mvSparkle 2.2s ease-in-out infinite;
+  }
+  #quizScreen.merveilleux-mode .question-card::after {
+    content: '🦄';
+    position: absolute; bottom: 10px; left: 16px;
+    font-size: 1.4rem; opacity: .7;
+    animation: mvSparkle 2.6s ease-in-out infinite reverse;
+  }
+  @keyframes mvSparkle {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: .5; }
+    50%      { transform: scale(1.25) rotate(12deg); opacity: 1; }
+  }
+  #quizScreen.merveilleux-mode .choice-btn {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,182,246,.4);
+  }
+  #quizScreen.merveilleux-mode .choice-btn:hover:not(:disabled) {
+    background: rgba(255,182,246,.18);
+  }

@@ -821,5 +821,65 @@ window.QUIZ_DATA = {
     { id: 'arabe-098', difficulty: 3, question: 'Comment écrit-on « lune » en lettres arabes ?', options: ['قمر', 'شمس', 'نجمة', 'سماء'], answer: 'قمر', image: 'https://quiz-images.yacineberrada.workers.dev/arabe/arabe-098.jpg' },
     { id: 'arabe-099', difficulty: 3, question: 'Quelle est la dernière lettre de l\'alphabet arabe ?', options: ['ا', 'ي', 'و', 'ه'], answer: 'ي', image: 'https://quiz-images.yacineberrada.workers.dev/arabe/arabe-099.jpg' },
     { id: 'arabe-100', difficulty: 3, question: 'Comment dit-on « grande » au féminin en arabe ?', options: ['Kabira', 'Kabir', 'Saghira', 'Saghir'], answer: 'Kabira', image: 'https://quiz-images.yacineberrada.workers.dev/arabe/arabe-100.jpg' }
+  ],
+
+  // Mode Merveilleux (F-31) — bonus theme unlocked by a 10-answer streak.
+  // Funny & whimsical, text-only (no images), mixed difficulty.
+  merveilleux: [
+    // ─── FACILE (18) ───
+    { id: 'mv-001', difficulty: 1, question: 'Combien de cornes a une licorne ?', options: ['0', '1', '2', '4'], answer: '1' },
+    { id: 'mv-002', difficulty: 1, question: 'Que souffle-t-on sur les bougies d\'un gâteau d\'anniversaire ?', options: ['Les bougies', 'La fumée', 'Le gâteau', 'Les cadeaux'], answer: 'Les bougies' },
+    { id: 'mv-003', difficulty: 1, question: 'Que porte une princesse sur la tête ?', options: ['Une couronne', 'Un casque', 'Un chapeau de pluie', 'Des lunettes de soleil'], answer: 'Une couronne' },
+    { id: 'mv-004', difficulty: 1, question: 'Avec quoi une fée fait-elle de la magie ?', options: ['Une baguette magique', 'Un marteau', 'Une pelle', 'Un parapluie'], answer: 'Une baguette magique' },
+    { id: 'mv-005', difficulty: 1, question: 'Combien de couleurs y a-t-il dans un arc-en-ciel ?', options: ['3', '5', '7', '9'], answer: '7' },
+    { id: 'mv-006', difficulty: 1, question: 'Que reçoit-on souvent pour son anniversaire ?', options: ['Des cadeaux', 'Des devoirs', 'Des factures', 'Des chaussettes sales'], answer: 'Des cadeaux' },
+    { id: 'mv-007', difficulty: 1, question: 'Qu\'est-ce qu\'on gonfle pour décorer une fête ?', options: ['Des ballons', 'Des cailloux', 'Des chaussures', 'Des parapluies'], answer: 'Des ballons' },
+    { id: 'mv-008', difficulty: 1, question: 'Où vit souvent un dragon gentil, dans les histoires ?', options: ['Dans un château ou une grotte', 'Dans un réfrigérateur', 'Dans une boîte aux lettres', 'Dans une piscine'], answer: 'Dans un château ou une grotte' },
+    { id: 'mv-009', difficulty: 1, question: 'Quel dessert sucré prépare-t-on pour un anniversaire ?', options: ['Un gâteau', 'Une soupe', 'Une salade', 'Un sandwich'], answer: 'Un gâteau' },
+    { id: 'mv-010', difficulty: 1, question: 'De quelle couleur est souvent la crinière d\'une licorne magique dans les dessins ?', options: ['Multicolore', 'Noire', 'Grise', 'Transparente'], answer: 'Multicolore' },
+    { id: 'mv-011', difficulty: 1, question: 'Que fait-on avant de souffler les bougies d\'anniversaire ?', options: ['Faire un vœu', 'Faire la vaisselle', 'Dormir', 'Pleurer'], answer: 'Faire un vœu' },
+    { id: 'mv-012', difficulty: 1, question: 'Sur quoi vole une fée, dans les contes ?', options: ['Ses ailes', 'Un vélo', 'Une trottinette', 'Un tapis roulant'], answer: 'Ses ailes' },
+    { id: 'mv-013', difficulty: 1, question: 'Que met-on autour d\'un cadeau d\'anniversaire ?', options: ['Du papier cadeau', 'De la peinture', 'De la terre', 'De la neige'], answer: 'Du papier cadeau' },
+    { id: 'mv-014', difficulty: 1, question: 'Quel animal a une seule corne magique sur le front ?', options: ['La licorne', 'Le cheval', 'Le zèbre', 'L\'âne'], answer: 'La licorne' },
+    { id: 'mv-015', difficulty: 1, question: 'Que chante-t-on souvent le jour d\'un anniversaire ?', options: ['La chanson « Joyeux anniversaire »', 'Une berceuse', 'L\'hymne national', 'Une comptine de pluie'], answer: 'La chanson « Joyeux anniversaire »' },
+    { id: 'mv-016', difficulty: 1, question: 'Que porte un roi ou une reine sur la tête, comme la princesse ?', options: ['Une couronne', 'Un bonnet de bain', 'Un casque de vélo', 'Une capuche'], answer: 'Une couronne' },
+    { id: 'mv-017', difficulty: 1, question: 'Quelle friandise sucrée et colorée aime-t-on offrir à une fête d\'anniversaire ?', options: ['Des bonbons', 'Des cailloux', 'Des épinards', 'Des olives'], answer: 'Des bonbons' },
+    { id: 'mv-018', difficulty: 1, question: 'Où trouve-t-on souvent une princesse, dans les contes de fées ?', options: ['Dans un château', 'Dans un garage', 'Dans un sous-marin', 'Dans une usine'], answer: 'Dans un château' },
+
+    // ─── MOYEN (17) ───
+    { id: 'mv-019', difficulty: 2, question: 'Après quel temps voit-on souvent apparaître un arc-en-ciel ?', options: ['Une pluie avec du soleil', 'Une tempête de neige', 'Un jour de vent sans nuage', 'Une nuit sans lune'], answer: 'Une pluie avec du soleil' },
+    { id: 'mv-020', difficulty: 2, question: 'Que mangent le plus souvent les dragons gentils, dans les histoires magiques ?', options: ['Des bonbons et des gâteaux', 'Des cailloux', 'Des chevaliers', 'Rien du tout'], answer: 'Des bonbons et des gâteaux' },
+    { id: 'mv-021', difficulty: 2, question: 'Que fait-on en premier à une fête d\'anniversaire : souffler les bougies ou ouvrir les cadeaux ?', options: ['Souffler les bougies', 'Ouvrir les cadeaux', 'Ranger la maison', 'Faire la sieste'], answer: 'Souffler les bougies' },
+    { id: 'mv-022', difficulty: 2, question: 'Dans un conte célèbre, en quoi une fée transforme-t-elle une citrouille ?', options: ['Un carrosse', 'Un vélo', 'Une maison', 'Un bateau'], answer: 'Un carrosse' },
+    { id: 'mv-023', difficulty: 2, question: 'Que crache un dragon gentil à la place du feu, dans les histoires les plus douces ?', options: ['Des paillettes ou des bulles', 'De la lave', 'De la fumée noire', 'Des cailloux'], answer: 'Des paillettes ou des bulles' },
+    { id: 'mv-024', difficulty: 2, question: 'Quel accessoire magique aide une marraine la fée à exaucer un vœu ?', options: ['Une baguette magique étincelante', 'Une pelle', 'Un marteau', 'Un parapluie'], answer: 'Une baguette magique étincelante' },
+    { id: 'mv-025', difficulty: 2, question: 'Comment appelle-t-on une fête organisée en secret pour surprendre la personne qui fête son anniversaire ?', options: ['Une fête surprise', 'Une réunion de travail', 'Un examen', 'Une sieste'], answer: 'Une fête surprise' },
+    { id: 'mv-026', difficulty: 2, question: 'Que portent souvent les invités d\'une fête d\'anniversaire déguisée ?', options: ['Des déguisements', 'Des manteaux de pluie', 'Des bottes de ski', 'Des gants de boxe'], answer: 'Des déguisements' },
+    { id: 'mv-027', difficulty: 2, question: 'Dans les contes, qui vit dans un château avec un roi et une reine ?', options: ['Une princesse', 'Un pêcheur', 'Un fermier', 'Un pompier'], answer: 'Une princesse' },
+    { id: 'mv-028', difficulty: 2, question: 'Que fait une baguette magique quand une fée l\'agite ?', options: ['Elle fait des étincelles magiques', 'Elle fait du bruit fort', 'Elle devient lourde', 'Elle fond'], answer: 'Elle fait des étincelles magiques' },
+    { id: 'mv-029', difficulty: 2, question: 'Quelle forme a le plus souvent une part de gâteau d\'anniversaire coupée dans un gâteau rond ?', options: ['Un triangle', 'Un carré', 'Un rond', 'Une étoile'], answer: 'Un triangle' },
+    { id: 'mv-030', difficulty: 2, question: 'Que trouve-t-on parfois caché à l\'intérieur d\'une piñata, à une fête ?', options: ['Des bonbons et des petits jouets', 'Des cailloux', 'Des livres de classe', 'Des chaussettes'], answer: 'Des bonbons et des petits jouets' },
+    { id: 'mv-031', difficulty: 2, question: 'Combien de vœux une fée exauce-t-elle traditionnellement, dans beaucoup de contes ?', options: ['3', '1', '10', '100'], answer: '3' },
+    { id: 'mv-032', difficulty: 2, question: 'Quelle couleur a souvent un dragon gentil et joyeux dans les dessins animés ?', options: ['Verte ou colorée', 'Uniquement noire', 'Uniquement grise', 'Invisible'], answer: 'Verte ou colorée' },
+    { id: 'mv-033', difficulty: 2, question: 'Qu\'est-ce qu\'une licorne aime brouter, selon les histoires magiques ?', options: ['De l\'herbe scintillante et des fleurs', 'Des cailloux', 'Du métal', 'Du sable'], answer: 'De l\'herbe scintillante et des fleurs' },
+    { id: 'mv-034', difficulty: 2, question: 'Où une princesse danse-t-elle souvent lors d\'un bal au château ?', options: ['Une grande salle de bal', 'Un terrain de foot', 'Un parking', 'Une cuisine'], answer: 'Une grande salle de bal' },
+    { id: 'mv-035', difficulty: 2, question: 'Que fait-on avec une carte d\'invitation avant une fête d\'anniversaire ?', options: ['On l\'envoie aux amis', 'On la mange', 'On la jette tout de suite', 'On la cache pour toujours'], answer: 'On l\'envoie aux amis' },
+
+    // ─── DIFFICILE (15) ───
+    { id: 'mv-036', difficulty: 3, question: 'Dans un célèbre conte, à quelle heure précise le carrosse magique redevient-il une citrouille ?', options: ['Minuit', 'Midi', 'L\'aube', 'Le coucher du soleil'], answer: 'Minuit' },
+    { id: 'mv-037', difficulty: 3, question: 'Pourquoi un arc-en-ciel a-t-il une forme d\'arc, tout courbé ?', options: ['Parce que la lumière du soleil traverse les gouttes de pluie en rond', 'Parce que le vent le plie', 'Parce que les nuages le poussent', 'Parce que c\'est peint dans le ciel'], answer: 'Parce que la lumière du soleil traverse les gouttes de pluie en rond' },
+    { id: 'mv-038', difficulty: 3, question: 'Dans les contes, comment devient-on ami avec un dragon gentil ?', options: ['Avec de la gentillesse ou un cadeau', 'En lui faisant peur', 'En l\'ignorant complètement', 'En criant très fort'], answer: 'Avec de la gentillesse ou un cadeau' },
+    { id: 'mv-039', difficulty: 3, question: 'En combien de temps une fée exauce-t-elle un vœu, dans les histoires les plus magiques ?', options: ['En un coup de baguette magique', 'En une semaine entière', 'En un an', 'Jamais'], answer: 'En un coup de baguette magique' },
+    { id: 'mv-040', difficulty: 3, question: 'Comment appelle-t-on la forme pointue et torsadée de la corne d\'une licorne ?', options: ['Une spirale', 'Une antenne', 'Une défense', 'Un bec'], answer: 'Une spirale' },
+    { id: 'mv-041', difficulty: 3, question: 'Comment s\'appelle le jeu de fête où l\'on tape, les yeux bandés, sur un objet rempli de bonbons suspendu en l\'air ?', options: ['Casser la piñata', 'Jouer à cache-cache', 'Faire une course', 'Danser en rond'], answer: 'Casser la piñata' },
+    { id: 'mv-042', difficulty: 3, question: 'Pourquoi souffle-t-on sur les bougies d\'un gâteau d\'anniversaire, selon la tradition ?', options: ['Pour faire un vœu et l\'envoyer avec la fumée', 'Pour refroidir le gâteau', 'Pour allumer plus de bougies', 'Pour faire du bruit'], answer: 'Pour faire un vœu et l\'envoyer avec la fumée' },
+    { id: 'mv-043', difficulty: 3, question: 'Quel conte parle d\'une princesse qui dort cent ans à cause d\'un mauvais sort ?', options: ['La Belle au bois dormant', 'Cendrillon', 'Blanche-Neige', 'Le Petit Chaperon rouge'], answer: 'La Belle au bois dormant' },
+    { id: 'mv-044', difficulty: 3, question: 'Dans un conte, quelle princesse perd sa chaussure de verre en partant vite d\'un bal ?', options: ['Cendrillon', 'Blanche-Neige', 'La Petite Sirène', 'Raiponce'], answer: 'Cendrillon' },
+    { id: 'mv-045', difficulty: 3, question: 'Comment appelle-t-on la personne, souvent déguisée, qui organise les jeux d\'une fête d\'enfants ?', options: ['Une animatrice ou un animateur', 'Un pompier', 'Un médecin', 'Un facteur'], answer: 'Une animatrice ou un animateur' },
+    { id: 'mv-046', difficulty: 3, question: 'Quelle couleur voit-on tout en haut d\'un arc-en-ciel ?', options: ['Rouge', 'Violet', 'Vert', 'Bleu'], answer: 'Rouge' },
+    { id: 'mv-047', difficulty: 3, question: 'Comment appelle-t-on la fée qui aide une héroïne avec des cadeaux magiques, dans les contes ?', options: ['Une marraine la fée', 'Une sorcière', 'Une géante', 'Une ogresse'], answer: 'Une marraine la fée' },
+    { id: 'mv-048', difficulty: 3, question: 'Que fait un dragon gentil pour aider ses amis pendant une fête ?', options: ['Il transporte les invités en volant ou allume les bougies avec son souffle', 'Il casse le château', 'Il mange le gâteau tout seul', 'Il s\'enfuit'], answer: 'Il transporte les invités en volant ou allume les bougies avec son souffle' },
+    { id: 'mv-049', difficulty: 3, question: 'Pourquoi dit-on qu\'une licorne est un animal « magique » et pas un simple cheval ?', options: ['Parce qu\'elle a une corne et des pouvoirs magiques dans les histoires', 'Parce qu\'elle est plus grande qu\'un cheval', 'Parce qu\'elle court plus vite', 'Parce qu\'elle est grise'], answer: 'Parce qu\'elle a une corne et des pouvoirs magiques dans les histoires' },
+    { id: 'mv-050', difficulty: 3, question: 'Que fait-on juste après avoir chanté « Joyeux anniversaire » et soufflé les bougies ?', options: ['On mange le gâteau', 'On va se coucher', 'On range la maison', 'On part à l\'école'], answer: 'On mange le gâteau' }
   ]
 };
