@@ -36,6 +36,11 @@ You'll often be handed a single backlog item (e.g. "do F-32") and expected to wo
 - Don't delete user data or write destructive SQL.
 - Content for kids: nothing scary, violent, or inappropriate; facts must be correct.
 
+## Dev/parent shortcuts
+
+- `?streak=9` in the URL forces the session streak so a single correct answer unlocks Mode Merveilleux (F-31).
+- Typing `licorne` anywhere outside a text input (or `Ctrl+Shift+M`) unlocks and jumps straight into Mode Merveilleux; on touch devices, 5 quick taps on the wheel screen title do the same. Silent on purpose — no UI hint. See `src/quiz.js`.
+
 ## Commits
 
 Short imperative summary ending with the backlog ID in parentheses, e.g. `Surprise draws from all themes (F-32)`.
