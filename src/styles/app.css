@@ -579,9 +579,12 @@
 
   /* ── MODE MERVEILLEUX (F-31) — glowing entry + unlock popup + play skin ── */
   .mv-entry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-family: 'Fredoka One', cursive;
     font-size: 1rem;
-    padding: 12px 28px;
+    padding: 10px 28px 10px 16px;
     border-radius: 100px;
     border: 2px solid #fff;
     cursor: pointer;
@@ -592,6 +595,7 @@
     transition: transform 0.15s;
   }
   .mv-entry-btn:hover { transform: scale(1.05); }
+  .mv-entry-icon { width: 30px; height: 30px; flex-shrink: 0; }
   @keyframes mvGlow {
     0%, 100% { box-shadow: 0 0 12px rgba(255,155,238,.6); }
     50%      { box-shadow: 0 0 26px rgba(255,155,238,.95), 0 0 40px rgba(192,132,252,.6); }
@@ -600,6 +604,29 @@
     0%   { background-position: 0% 50%; }
     50%  { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+  }
+
+  /* Shared inline-SVG unicorn (entry button icon, popup, question-card
+     companion) — see unicornSVG() in ui.js. */
+  .unicorn-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .unicorn-svg .mv-horn {
+    transform-origin: 62px 20px;
+    animation: mvHornShine 2.4s ease-in-out infinite;
+  }
+  @keyframes mvHornShine {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(255,235,150,.7)); }
+    50%      { filter: drop-shadow(0 0 7px rgba(255,235,150,1)) drop-shadow(0 0 11px rgba(242,185,59,.7)); }
+  }
+  .unicorn-svg .mv-spark {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mvSparkTwinkle 1.8s ease-in-out infinite;
+  }
+  .unicorn-svg .mv-spark-b { animation-delay: .4s; }
+  .unicorn-svg .mv-spark-c { animation-delay: .9s; }
+  @keyframes mvSparkTwinkle {
+    0%, 100% { opacity: .35; transform: scale(0.7); }
+    50%      { opacity: 1; transform: scale(1.15); }
   }
 
   /* Unlock celebration popup */
@@ -622,7 +649,28 @@
     box-shadow: 0 0 50px rgba(255,155,238,.6);
     animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
   }
-  .mv-popup-emoji { font-size: 3rem; margin-bottom: 10px; }
+  .mv-popup-unicorn-wrap {
+    position: relative;
+    width: 132px; height: 132px;
+    margin: 0 auto 12px;
+  }
+  .mv-popup-unicorn {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 6px 14px rgba(192,132,252,.5));
+  }
+  .mv-spark-float {
+    position: absolute;
+    font-size: 1.05rem;
+    pointer-events: none;
+    animation: mvSparkFloat 2.6s ease-in-out infinite;
+  }
+  .mv-spark-float.s1 { top: -2px;  left: 2%;   animation-delay: 0s; }
+  .mv-spark-float.s2 { top: 22%;   right: -8px; font-size: .85rem; animation-delay: .7s; }
+  .mv-spark-float.s3 { bottom: 8%; left: -6px;  font-size: .8rem;  animation-delay: 1.3s; }
+  @keyframes mvSparkFloat {
+    0%, 100% { transform: translateY(0) scale(1); opacity: .7; }
+    50%      { transform: translateY(-9px) scale(1.2); opacity: 1; }
+  }
   .mv-popup-title {
     font-family: 'Fredoka One', cursive;
     font-size: 1.3rem;
@@ -641,23 +689,7 @@
     border: 2px solid rgba(255,255,255,0.25);
     box-shadow: 0 8px 40px rgba(255,155,238,.35), 0 0 60px rgba(192,132,252,.25);
     position: relative;
-    overflow: hidden;
-  }
-  #quizScreen.merveilleux-mode .question-card::before {
-    content: '✨';
-    position: absolute; top: 10px; right: 16px;
-    font-size: 1.4rem; opacity: .8;
-    animation: mvSparkle 2.2s ease-in-out infinite;
-  }
-  #quizScreen.merveilleux-mode .question-card::after {
-    content: '🦄';
-    position: absolute; bottom: 10px; left: 16px;
-    font-size: 1.4rem; opacity: .7;
-    animation: mvSparkle 2.6s ease-in-out infinite reverse;
-  }
-  @keyframes mvSparkle {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: .5; }
-    50%      { transform: scale(1.25) rotate(12deg); opacity: 1; }
+    overflow: visible;
   }
   #quizScreen.merveilleux-mode .choice-btn {
     background: rgba(255,255,255,0.08);
@@ -665,4 +697,42 @@
   }
   #quizScreen.merveilleux-mode .choice-btn:hover:not(:disabled) {
     background: rgba(255,182,246,.18);
+  }
+
+  /* Question-card companion — peeks over the top-right corner (outside the
+     card's own box) so it never crowds the question text or choices, even
+     on a narrow ~400px phone. */
+  .mv-companion { display: none; pointer-events: none; z-index: 2; }
+  #quizScreen.merveilleux-mode .mv-companion {
+    display: block;
+    position: absolute;
+    top: -22px; right: 16px;
+    width: 50px; height: 50px;
+    animation: mvCompanionFloat 3.4s ease-in-out infinite;
+  }
+  @keyframes mvCompanionFloat {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-6px) rotate(3deg); }
+  }
+  #quizScreen.merveilleux-mode .mv-companion.bounce {
+    animation: mvCompanionBounce 0.6s ease;
+  }
+  @keyframes mvCompanionBounce {
+    0%   { transform: translateY(0) scale(1) rotate(0deg); }
+    30%  { transform: translateY(-16px) scale(1.18) rotate(-6deg); }
+    55%  { transform: translateY(0) scale(0.94) rotate(4deg); }
+    80%  { transform: translateY(-6px) scale(1.06) rotate(0deg); }
+    100% { transform: translateY(0) scale(1) rotate(0deg); }
+  }
+
+  /* Gentle-motion only — never withhold the unlock celebration itself. */
+  @media (prefers-reduced-motion: reduce) {
+    .mv-entry-btn,
+    .unicorn-svg .mv-horn,
+    .unicorn-svg .mv-spark,
+    .mv-spark-float,
+    #quizScreen.merveilleux-mode .mv-companion,
+    #quizScreen.merveilleux-mode .mv-companion.bounce {
+      animation: none !important;
+    }
   }

@@ -2,6 +2,7 @@
 // and the current-player badge. Owns the current profile.
 import { getProfiles, createProfile, deleteProfile, AVATARS } from './db.js';
 import { showScreen } from './ui.js';
+import { resetPlaySession } from './quiz.js';
 
 const STORAGE_KEY = 'qr_profile_id';
 let currentProfile = null;   // selected profile row, or null (guest)
@@ -34,6 +35,10 @@ function setCurrent(profile) {
 }
 
 function play(profile) {
+  // A new player at the wheel starts a fresh session — siblings sharing the
+  // device must never inherit the previous player's streak or unlocked
+  // Mode Merveilleux.
+  resetPlaySession();
   setCurrent(profile);
   showScreen('wheelScreen');
 }

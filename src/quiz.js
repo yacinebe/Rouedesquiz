@@ -1,6 +1,6 @@
 // Quiz loop: endless run per theme (or a finite "revise mistakes" replay),
 // with a milestone every 10 questions.
-import { showScreen, launchConfetti, shuffle } from './ui.js';
+import { showScreen, launchConfetti, shuffle, unicornSVG } from './ui.js';
 import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
@@ -217,6 +217,8 @@ function selectAnswer(chosen) {
     }
   }
 
+  if (isCorrect && runTheme === 'merveilleux') bounceCompanion();
+
   // Record the attempt (fire-and-forget; no-ops for guests / offline)
   logAttempt({
     profile_id: getProfileId(),
@@ -317,6 +319,17 @@ function closeMerveilleuxPopup() {
   document.getElementById('mvPopup').style.display = 'none';
 }
 
+// Small bounce on the question-card companion when a Merveilleux answer is
+// correct (removed again on animationend so it can re-trigger next time).
+function bounceCompanion() {
+  const el = document.getElementById('mvCompanion');
+  if (!el) return;
+  el.classList.remove('bounce');
+  void el.offsetWidth; // reflow, so re-adding the class restarts the animation
+  el.classList.add('bounce');
+  el.addEventListener('animationend', () => el.classList.remove('bounce'), { once: true });
+}
+
 // Jump straight into Mode Merveilleux (from the popup's "Jouer maintenant"
 // or the wheel-screen entry button once unlocked). Finalizes whatever run
 // was in progress first, same as leaving via "Retour à la roue".
@@ -326,10 +339,21 @@ function playMerveilleuxNow() {
   startQuiz(MERVEILLEUX_SEG);
 }
 
-// Reset the in-memory session state (streak + unlock) on sign-out — Mode
-// Merveilleux is a per-session reward, never persisted.
+// Dev/testing shortcut: ?streak=9 forces the session streak, so the unlock
+// can be tested with a single correct answer. Read fresh each time (instead
+// of once at load) so it survives resetPlaySession() resets too.
+function forcedStreakFromURL() {
+  const raw = new URLSearchParams(location.search).get('streak');
+  const n = Number(raw);
+  return (raw !== null && Number.isFinite(n) && n >= 0) ? n : null;
+}
+
+// Reset the in-memory session state (streak + unlock) — Mode Merveilleux is
+// a per-session reward, never persisted, so every new session starts locked
+// again. Called on sign-out, sign-in and profile switch (a page reload
+// resets it for free, since these are plain module-level variables).
 export function resetPlaySession() {
-  sessionStreak = 0;
+  sessionStreak = forcedStreakFromURL() ?? 0;
   merveilleuxUnlocked = false;
   closeMerveilleuxPopup();
   const btn = document.getElementById('mvEntryBtn');
@@ -346,9 +370,12 @@ export function initQuiz() {
   document.getElementById('mvPlayNow').addEventListener('click', playMerveilleuxNow);
   document.getElementById('mvLater').addEventListener('click', closeMerveilleuxPopup);
 
-  // Dev/testing shortcut: ?streak=9 starts the session streak at 9, so the
-  // unlock can be tested with a single correct answer.
-  const streakParam = new URLSearchParams(location.search).get('streak');
-  const forcedStreak = Number(streakParam);
-  if (streakParam !== null && Number.isFinite(forcedStreak) && forcedStreak >= 0) sessionStreak = forcedStreak;
+  const entryIcon = document.getElementById('mvEntryIcon');
+  if (entryIcon) entryIcon.innerHTML = unicornSVG('entry');
+  const popupUnicorn = document.getElementById('mvPopupUnicorn');
+  if (popupUnicorn) popupUnicorn.innerHTML = unicornSVG('popup');
+  const companion = document.getElementById('mvCompanion');
+  if (companion) companion.innerHTML = unicornSVG('companion');
+
+  resetPlaySession();
 }
