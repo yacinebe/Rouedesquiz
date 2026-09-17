@@ -107,7 +107,12 @@ export async function initAuth() {
   onAuthChange((event) => {
     if (event === 'PASSWORD_RECOVERY') { recovering = true; showScreen('resetScreen'); return; }
     if (recovering && event === 'SIGNED_IN') return;   // stay on the reset screen
-    if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+    if (event === 'SIGNED_IN') {
+      // A new sign-in is a new session — never inherit a leftover streak /
+      // unlocked Mode Merveilleux from whoever last played on this device.
+      resetPlaySession();
+      goProfiles();
+    } else if (event === 'USER_UPDATED') {
       goProfiles();
     } else if (event === 'SIGNED_OUT') {
       resetCurrent();
