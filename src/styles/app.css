@@ -373,6 +373,23 @@
     margin-bottom: 10px;
   }
 
+  /* Origin tag — shown on Surprise questions to say which theme they came from */
+  .question-origin {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-radius: 50px;
+    border: 2px solid currentColor;
+    margin-bottom: 10px;
+  }
+  .question-origin.math       { color: var(--math); }
+  .question-origin.lecture    { color: var(--reading); }
+  .question-origin.geographie { color: var(--geo); }
+  .question-origin.astronomie { color: var(--astro); }
+  .question-origin.animaux    { color: var(--animaux); }
+  .question-origin.arabe      { color: var(--arabe); }
+
   .question-text {
     font-family: 'Fredoka One', cursive;
     font-size: clamp(1.2rem, 4vw, 1.6rem);

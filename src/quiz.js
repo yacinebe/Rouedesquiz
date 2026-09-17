@@ -3,6 +3,11 @@
 import { showScreen, launchConfetti, shuffle } from './ui.js';
 import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
+import { SEGMENTS } from './segments.js';
+
+// Surprise draws from every other theme, in equal shares — each question
+// keeps a tag back to its real theme so it can still be shown/answered correctly.
+const SURPRISE_SOURCES = SEGMENTS.filter(s => s.cls !== 'surprise');
 
 const MILESTONE = 10;                 // questions per milestone
 let queue = [];                       // upcoming questions this run
@@ -17,11 +22,7 @@ let runLogged = false;
 
 export async function startQuiz(seg) {
   if (!seg) return;
-  // DB first (Supabase), fall back to the static questions.js bank (offline-safe).
-  let pool = await fetchQuestions(seg.cls);
-  if (!pool || pool.length === 0) {
-    pool = (window.QUIZ_DATA && window.QUIZ_DATA[seg.cls]) || [];
-  }
+  const pool = seg.cls === 'surprise' ? await buildSurprisePool() : await fetchThemePool(seg.cls);
   if (!pool || pool.length === 0) {
     document.getElementById('resultArea').innerHTML =
       `<div class="result-card ${seg.cls}"><div class="rc-top"><span>Aucune question pour ce thème 😅</span></div></div>`;
@@ -29,6 +30,25 @@ export async function startQuiz(seg) {
   }
   beginRun({ theme: seg.cls, label: seg.label, color: seg.color,
              emoji: seg.emoji, cls: seg.cls, pool, endless: true });
+}
+
+// DB first (Supabase), fall back to the static questions.js bank (offline-safe).
+async function fetchThemePool(cls) {
+  let pool = await fetchQuestions(cls);
+  if (!pool || pool.length === 0) {
+    pool = (window.QUIZ_DATA && window.QUIZ_DATA[cls]) || [];
+  }
+  return pool;
+}
+
+// Mix & match from the 6 other themes (equal share each), tagging every
+// question with its real origin theme so it can still be shown & scored.
+async function buildSurprisePool() {
+  const pools = await Promise.all(SURPRISE_SOURCES.map(async src => {
+    const pool = await fetchThemePool(src.cls);
+    return pool.map(q => ({ ...q, origin: src }));
+  }));
+  return pools.flat();
 }
 
 // Start a run: an endless theme run, or a finite "revise mistakes" replay.
@@ -73,6 +93,16 @@ function renderQuestion() {
 
   document.getElementById('questionNum').textContent = `Question ${runCount + 1}`;
   document.getElementById('questionText').textContent = q.question;
+
+  // Surprise mode: tag each question with the real theme it was drawn from.
+  const originEl = document.getElementById('questionOrigin');
+  if (q.origin) {
+    originEl.textContent = `${q.origin.emoji} ${q.origin.label}`;
+    originEl.className = 'question-origin ' + q.origin.cls;
+    originEl.style.display = '';
+  } else {
+    originEl.style.display = 'none';
+  }
 
   // Question image (optional — illustration or image-as-question)
   const imgWrap = document.getElementById('questionImageWrap');
