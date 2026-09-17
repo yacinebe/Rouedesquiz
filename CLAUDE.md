@@ -13,7 +13,7 @@ French educational quiz game for a child aged 5–7, built around a spinning the
 
 - `src/main.js` wiring · `wheel.js` wheel canvas · `quiz.js` question flow · `segments.js` the wheel themes (`cls` = theme key) · `auth.js` / `profiles.js` accounts · `progress.js` progress page · `audio.js` sound effects · `ui.js` shared helpers
 - `questions.js` — static question bank (`window.QUIZ_DATA`, keyed by theme). The DB `questions` table is seeded from it via `tools/migrate-questions-to-db.js`; `questions.js` is the offline fallback. Data shape documented in [REQUIREMENTS.md](REQUIREMENTS.md) §2.3.
-- `BACKLOG_FUNCTIONAL.md` (F-xx) and `BACKLOG_TECHNICAL.md` (T-xx) — the backlogs. `backlog.html` is **generated**: never edit it by hand.
+- `BACKLOG_FUNCTIONAL.md` (F-xx) and `BACKLOG_TECHNICAL.md` (T-xx) — the backlogs. `backlog.html` is **generated** and gitignored: never edit or commit it.
 
 ## Autonomous workflow (backlog item → PR)
 
@@ -24,7 +24,7 @@ You'll often be handed a single backlog item (e.g. "do F-32") and expected to wo
 3. **Open questions → decide, don't stall.** Pick the simplest sensible default that fits a 5–7 year old, and list every such choice under "Decisions I made" in the PR so the user can overrule it.
 4. **Implement** matching the existing code style: small ES modules, vanilla DOM, French UI strings, CSS in `app.css` using existing variables.
 5. **Verify** before opening the PR: there are no automated tests, so at minimum check the JS parses (`node --check <file>` on each changed module) and reason through the golden path (welcome → sign in → profile → wheel → spin → answer questions → milestone → back). Mention what you verified and how.
-6. **Update the backlog**: set the item's Status (`In progress` if partial, `Done` if complete), add a short note of what shipped, then regenerate the view with `node tools/build-backlog-view.js`. Commit both files.
+6. **Update the backlog**: set the item's Status (`In progress` if partial, `Done` if complete), add a short note of what shipped, and commit the backlog file. (`backlog.html` is gitignored — only regenerate it with `node tools/build-backlog-view.js` when working locally; never commit it.)
 7. **Open the PR** using the template (`.github/pull_request_template.md`), title `F-32: <short description>`.
 
 ## Guardrails — stop and hand over to the user
