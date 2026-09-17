@@ -7,6 +7,7 @@ import {
 import { showScreen } from './ui.js';
 import { refreshProfiles, resetCurrent } from './profiles.js';
 import { paintWelcome } from './wheel.js';
+import { resetPlaySession } from './quiz.js';
 
 let recovering = false;   // true while handling a password-reset link
 
@@ -110,6 +111,7 @@ export async function initAuth() {
       goProfiles();
     } else if (event === 'SIGNED_OUT') {
       resetCurrent();
+      resetPlaySession();
       showScreen('welcomeScreen');
     }
   });
