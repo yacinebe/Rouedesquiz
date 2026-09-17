@@ -348,6 +348,67 @@ function forcedStreakFromURL() {
   return (raw !== null && Number.isFinite(n) && n >= 0) ? n : null;
 }
 
+// ── Secret parent/dev shortcut into Mode Merveilleux (F-31 follow-up) ──────
+// Unlocks (same end state as earning the 10-streak — the 🦄 entry button
+// stays visible afterwards) and jumps straight into a Merveilleux run, in
+// one go. Deliberately undocumented in the UI — a hidden cheat, not a
+// feature — so it must never leave a visible hint or trigger by accident.
+// Session-only, like the real unlock: resetPlaySession() (sign-out/in,
+// profile switch) clears merveilleuxUnlocked the same way either path does.
+function activateMerveilleuxCheat() {
+  merveilleuxUnlocked = true;
+  showMerveilleuxEntry();
+  playMerveilleuxNow();
+}
+
+const CHEAT_WORD = 'licorne';
+let cheatBuffer = '';
+let cheatBufferTimer = null;
+
+// True while the user is typing into a real form field — the sign-in /
+// sign-up / profile forms all use plain <input>s, so this alone is enough
+// to keep the cheat from ever firing while a parent or kid is typing there.
+function isTypingInField(el) {
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+}
+
+function onCheatKeydown(e) {
+  if (isTypingInField(document.activeElement)) return;
+
+  if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === 'm') {
+    e.preventDefault();
+    activateMerveilleuxCheat();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;   // don't let other shortcuts pollute the buffer
+
+  if (!/^[a-z]$/i.test(e.key)) return;
+  clearTimeout(cheatBufferTimer);
+  cheatBuffer = (cheatBuffer + e.key.toLowerCase()).slice(-CHEAT_WORD.length);
+  cheatBufferTimer = setTimeout(() => { cheatBuffer = ''; }, 2000);
+  if (cheatBuffer === CHEAT_WORD) {
+    cheatBuffer = '';
+    activateMerveilleuxCheat();
+  }
+}
+
+// Touch equivalent (no keyboard on phone/tablet, the main device): 5 quick
+// taps on the wheel screen title within ~2s.
+let titleTapCount = 0;
+let titleTapTimer = null;
+
+function onWheelTitleTap() {
+  titleTapCount++;
+  clearTimeout(titleTapTimer);
+  titleTapTimer = setTimeout(() => { titleTapCount = 0; }, 2000);
+  if (titleTapCount >= 5) {
+    titleTapCount = 0;
+    activateMerveilleuxCheat();
+  }
+}
+
 // Reset the in-memory session state (streak + unlock) — Mode Merveilleux is
 // a per-session reward, never persisted, so every new session starts locked
 // again. Called on sign-out, sign-in and profile switch (a page reload
@@ -376,6 +437,10 @@ export function initQuiz() {
   if (popupUnicorn) popupUnicorn.innerHTML = unicornSVG('popup');
   const companion = document.getElementById('mvCompanion');
   if (companion) companion.innerHTML = unicornSVG('companion');
+
+  document.addEventListener('keydown', onCheatKeydown);
+  const wheelTitle = document.getElementById('wheelTitle');
+  if (wheelTitle) wheelTitle.addEventListener('click', onWheelTitleTap);
 
   resetPlaySession();
 }
