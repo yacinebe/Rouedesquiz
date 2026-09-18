@@ -192,8 +192,13 @@ $('#key').addEventListener('keydown', e => { if (e.key === 'Enter') $('#enter').
 
 // ── data ──────────────────────────────────────────────────────────────
 async function load() {
-  const [b, p] = await Promise.all([api('/api/backlog'), api('/api/pipeline').catch(() => ({ byStory: {} }))]);
+  const [b, p] = await Promise.all([
+    api('/api/backlog'),
+    // Never swallow this: an empty pipeline used to look like "nothing happened".
+    api('/api/pipeline').catch(e => ({ byStory: {}, warnings: [`pipeline unavailable: ${e.message}`] })),
+  ]);
   stories = b.stories; pipeline = p.byStory || {};
+  $('#err').textContent = (p.warnings || []).join(' · ');
   $('#stamp').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   render();
 }
