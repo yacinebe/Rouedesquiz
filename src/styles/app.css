@@ -306,11 +306,30 @@
     width: 100%;
     max-width: 620px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 14px;
     margin-bottom: 28px;
     margin-top: 16px;
   }
+
+  /* Read-aloud controls (F-01) — 🔊 replay + auto-read on/off toggle */
+  .tts-btn {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.15s, opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .tts-btn:hover { background: rgba(255,255,255,0.12); transform: scale(1.06); }
+  #ttsReplayBtn { margin-left: auto; }
+  .tts-btn.tts-toggle.off { opacity: 0.4; }
 
   .back-btn {
     background: var(--card);
