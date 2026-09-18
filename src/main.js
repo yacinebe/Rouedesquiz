@@ -3,12 +3,14 @@
 import { initWheel } from './wheel.js';
 import { initQuiz } from './quiz.js';
 import { initProgress } from './progress.js';
+import { initLeaderboard } from './leaderboard.js';
 import { initProfiles } from './profiles.js';
 import { initAuth } from './auth.js';
 
 initWheel();       // draws the wheel, wires spin + slice-click
 initQuiz();        // wires next / continue / back-to-wheel
 initProgress();    // wires the "Mes progrès" button
+initLeaderboard(); // wires the "Classement" button
 initProfiles();    // wires the profile picker (create form, manage, badge)
 initAuth();        // routes to welcome or profiles; wires sign in / up / out
 

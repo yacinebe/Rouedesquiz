@@ -148,7 +148,10 @@
     <span class="mv-entry-icon" id="mvEntryIcon"></span>
     Mode Merveilleux
   </button>
-  <button class="btn-secondary" id="progressBtn">📊 Mes progrès</button>
+  <div class="wheel-actions">
+    <button class="btn-secondary" id="progressBtn">📊 Mes progrès</button>
+    <button class="btn-secondary" id="leaderboardBtn">🏆 Classement</button>
+  </div>
 </div>
 
 <!-- ══════════════ QUIZ SCREEN ══════════════ -->
@@ -193,6 +196,15 @@
     <div class="quiz-cat-badge" style="color:#FFE66D;border-color:#FFE66D">📊 Mes progrès</div>
   </div>
   <div class="progress-body" id="progressBody"></div>
+</div>
+
+<!-- ══════════════ LEADERBOARD SCREEN ══════════════ -->
+<div id="leaderboardScreen" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" data-action="wheel">← Roue</button>
+    <div class="quiz-cat-badge" style="color:#C084FC;border-color:#C084FC">🏆 Classement</div>
+  </div>
+  <div class="leaderboard-body" id="leaderboardBody"></div>
 </div>
 
 <!-- Current player badge — shown top-right during play; click to switch -->
