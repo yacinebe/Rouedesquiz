@@ -38,4 +38,32 @@ jobs:
           #   ANTHROPIC_API_KEY       — from console.anthropic.com (pay per use)
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: '--allowedTools "Bash(node:*),Bash(git:*),Bash(gh pr create:*),Bash(gh pr view:*)"'
+          claude_args: '--allowedTools "Bash(node:*),Bash(git:*),Bash(gh:*)"'
+
+      # The action itself only leaves a "Create PR" link, so open the PR here:
+      # every branch Claude pushed for this issue that doesn't have one yet.
+      # Runs even if Claude failed part-way — a pushed branch is still reviewable.
+      - name: Open a PR for Claude's branch
+        if: always() && github.event.issue.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          # The checkout is shallow and single-branch, so ask GitHub, not git.
+          branch=$(gh api "repos/${GITHUB_REPOSITORY}/branches?per_page=100" \
+                   --jq ".[].name | select(startswith(\"claude/issue-${ISSUE}-\"))" | tail -1)
+          if [ -z "$branch" ]; then echo "No branch for issue #${ISSUE}; nothing to open."; exit 0; fi
+          if [ -n "$(gh pr list --head "$branch" --state all --json number --jq '.[].number')" ]; then
+            echo "PR already exists for $branch"; exit 0
+          fi
+          ahead=$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...${branch}" --jq '.ahead_by')
+          if [ "$ahead" = "0" ]; then echo "$branch has no new commits; nothing to open."; exit 0; fi
+          gh pr create --base main --head "$branch" \
+            --title "$TITLE" \
+            --body "Automated PR for Claude's work on #${ISSUE}.
+
+          See Claude's comment on #${ISSUE} for what changed, the decisions it made and what it verified.
+          Test it on the Vercel preview linked below, then merge.
+
+          Closes #${ISSUE}"
