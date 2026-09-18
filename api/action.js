@@ -17,13 +17,29 @@ module.exports = async (req, res) => {
   // Exactly what would be posted — so the panel can show it before anything is created.
   const compose = q => {
     const file = (q.backlog === 'technical' ? 'BACKLOG_TECHNICAL.md' : 'BACKLOG_FUNCTIONAL.md');
-    const lead = q.trigger
-      ? `@claude implement ${q.id} from ${file}\n\n`
-      : `Story ${q.id}. (Comment "@claude implement this" to start.)\n\n`;
-    return {
-      title: `${q.id}: ${q.title}`,
-      body: lead + (q.brief || '').trim() + (q.trigger ? TEMPLATE_TAIL : ''),
-    };
+    const brief = (q.brief || '').trim();
+    const meta = [
+      q.size && q.size !== '—' ? `**Size:** ${q.size}` : null,
+      q.priority && q.priority !== '—' ? `**Priority:** ${q.priority}` : null,
+      q.depends && q.depends !== '—' ? `**Depends on:** ${q.depends}` : null,
+    ].filter(Boolean).join(' · ');
+
+    const parts = [
+      q.trigger
+        ? `@claude implement ${q.id} from ${file}.`
+        : `Story ${q.id} from ${file}. (Comment "@claude implement this" to start.)`,
+      '',
+      '## The story',
+      (q.item || q.title || '').trim(),
+      meta ? `\n${meta}` : '',
+      brief ? `\n## Brief — decisions already made\n${brief}` : '',
+      q.trigger
+        ? '\n## Working agreement\nFollow CLAUDE.md. Decide any open question yourself with the simplest'
+          + ' sensible default for a 5–7 year old, and list every such choice under "Decisions I made"'
+          + ' in the PR.' + TEMPLATE_TAIL
+        : '',
+    ];
+    return { title: `${q.id}: ${q.title}`, body: parts.filter(x => x !== '').join('\n').trim() };
   };
 
   try {
