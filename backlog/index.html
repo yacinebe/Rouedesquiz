@@ -64,6 +64,13 @@
   button.link { background:none; border:none; box-shadow:none; padding:0; color:var(--accent);
                 text-decoration:underline; font-size:inherit; }
   .err { color:var(--bad); font-size:.85rem; }
+  .links { display:flex; gap:8px; flex-wrap:wrap; }
+  .pill { font-size:.8rem; font-weight:600; text-decoration:none; padding:5px 11px; border-radius:999px;
+          border:1px solid var(--border-strong); background:var(--surface); color:var(--ink); }
+  .pill:hover { background:var(--surface-2); }
+  .pill.go { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .pill.live { background:var(--ok-bg); border-color:var(--ok); color:var(--ok); }
+  .chip.prev { text-decoration:none; background:var(--accent-soft); color:var(--accent); }
   .draft { display:grid; gap:10px; border:1px dashed var(--border-strong); border-radius:10px;
            padding:11px; background:var(--surface-2); }
   .draft .tall { min-height:190px; font-family:var(--mono); font-size:.82rem; background:var(--surface); }
@@ -261,6 +268,25 @@ function pipeHTML(id, story) {
 
 const stepHTML = ([c, d, t]) => `<div class="step ${c}"><span class="dot">${d}</span><span>${t}</span></div>`;
 
+// The most recent attempt for a story — what the card header and link row show.
+function latest(id) {
+  const a = (pipeline[id] || []).slice().sort((x, y) => y.issue.number - x.issue.number);
+  return a[0] || null;
+}
+
+// Prominent links: issue, PR, the Vercel preview to test, and the live site.
+function linksHTML(id) {
+  const r = latest(id);
+  if (!r) return '';
+  const out = [`<a class="pill" href="${r.issue.url}" target="_blank">Issue #${r.issue.number}</a>`];
+  if (r.pr) out.push(`<a class="pill" href="${r.pr.url}" target="_blank">PR #${r.pr.number}</a>`);
+  if (r.preview) out.push(`<a class="pill go" href="${r.preview}" target="_blank">▶ Test the preview</a>`);
+  if (r.pr && r.pr.merged && r.pr.production && r.pr.production.state === 'success') {
+    out.push(`<a class="pill live" href="${r.pr.production.url || 'https://rouedesquiz.vercel.app'}" target="_blank">● Live</a>`);
+  }
+  return `<div class="links">${out.join('')}</div>`;
+}
+
 function latestIssue(id) {
   const runs = (pipeline[id] || []).slice().sort((a, b) => b.issue.number - a.issue.number);
   return runs[0] ? runs[0].issue.number : null;
@@ -281,6 +307,8 @@ function render() {
         <span class="id">${s.id}</span>
         <span class="name">${esc(s.title)}</span>
         ${s.priority && s.priority !== '—' ? `<span class="chip p-${s.priority.replace(/\s/g, '')}">${s.priority}</span>` : ''}
+        ${(() => { const r = latest(s.id); return r && r.preview
+            ? `<a class="chip prev" href="${r.preview}" target="_blank" data-stop>▶ preview</a>` : ''; })()}
         <span class="chip s-${(s.status || '').replace(/\s/g, '')}">${s.status}</span>
       </div>
       ${isOpen ? `<div class="body">
@@ -297,6 +325,7 @@ function render() {
           <span class="note" data-out="save"></span>
         </div>
 
+        ${linksHTML(s.id)}
         <div class="pipe-wrap">${pipeHTML(s.id)}</div>
 
         ${issueNo ? '' : `<label>Brief for Claude (decisions already made…)
@@ -333,6 +362,7 @@ const esc = s => (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 // ── interactions ──────────────────────────────────────────────────────
 $('#list').addEventListener('click', async e => {
+  if (e.target.closest('[data-stop]')) return;      // header preview link
   const toggle = e.target.closest('[data-toggle]');
   if (toggle) {
     const id = toggle.dataset.toggle;
