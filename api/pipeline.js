@@ -27,7 +27,10 @@ module.exports = async (req, res) => {
 
     // Preview URLs come from the Vercel bot's comment on each PR (open ones only).
     const previews = {};
-    await Promise.all(pulls.filter(p => p.state === 'open').slice(0, 10).map(async p => {
+    const recent = (pulls || []).slice()
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      .slice(0, 12);                      // open *and* recently merged, so the link survives the merge
+    await Promise.all(recent.map(async p => {
       try {
         const comments = await gh(repoPath(`/issues/${p.number}/comments?per_page=20`));
         for (const c of comments) {
