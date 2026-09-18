@@ -4,6 +4,7 @@ import { showScreen, launchConfetti, shuffle, unicornSVG } from './ui.js';
 import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
+import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speak, stopSpeaking } from './tts.js';
 
 // Surprise draws from every other theme, in equal shares — each question
 // keeps a tag back to its real theme so it can still be shown/answered correctly.
@@ -101,6 +102,15 @@ function setBadgeScore() {
   el.textContent = parts.join('  ');
 }
 
+// F-01: what gets read aloud — the question, then each option prefixed by
+// its letter so a pre-reader can still tell them apart when picking.
+function speechTextForQuestion(q) {
+  if (!q) return '';
+  const letters = ['A', 'B', 'C', 'D'];
+  const opts = q.options.map((o, i) => `Réponse ${letters[i]} : ${o}.`).join(' ');
+  return `${q.question} ${opts}`;
+}
+
 function renderQuestion() {
   answered = false;
   const q = currentQ;
@@ -182,6 +192,8 @@ function renderQuestion() {
   card.style.animation = 'none';
   card.offsetHeight; // reflow
   card.style.animation = '';
+
+  if (isTtsSupported() && isTtsEnabled()) speak(speechTextForQuestion(q));
 }
 
 function selectAnswer(chosen) {
@@ -257,6 +269,7 @@ function milestoneEmoji(s, total) {
 }
 
 function showMilestone() {
+  stopSpeaking();
   document.getElementById('msContinue').style.display = '';
   document.getElementById('msEmoji').textContent = milestoneEmoji(runScore, runCount);
   document.getElementById('msTitle').textContent = `Palier ${runCount / MILESTONE} atteint !`;
@@ -277,6 +290,7 @@ function continueRun() {
 
 // A finite run ("revise mistakes") has no more questions.
 function runComplete() {
+  stopSpeaking();
   finalizeRun();
   document.getElementById('msContinue').style.display = 'none';
   document.getElementById('msEmoji').textContent = '🎯';
@@ -299,6 +313,7 @@ function finalizeRun() {
 }
 
 export function goToWheel() {
+  stopSpeaking();
   finalizeRun();
   showScreen('wheelScreen');
 }
@@ -421,7 +436,37 @@ export function resetPlaySession() {
   if (btn) btn.style.display = 'none';
 }
 
+// F-01: 🔊 replays the current question on demand; the toggle switches
+// auto-read on/off (remembered across visits — this device only, no DB).
+function updateTtsToggleUI() {
+  const btn = document.getElementById('ttsToggleBtn');
+  if (!btn) return;
+  const on = isTtsEnabled();
+  btn.textContent = on ? '🔊' : '🔇';
+  btn.classList.toggle('off', !on);
+  btn.title = on ? 'Lecture automatique activée (appuie pour désactiver)' : 'Lecture automatique désactivée (appuie pour activer)';
+}
+
+function initTtsControls() {
+  const replayBtn = document.getElementById('ttsReplayBtn');
+  const toggleBtn = document.getElementById('ttsToggleBtn');
+  if (!isTtsSupported()) {
+    if (replayBtn) replayBtn.style.display = 'none';
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    return;
+  }
+  initTts();
+  replayBtn.addEventListener('click', () => speak(speechTextForQuestion(currentQ)));
+  toggleBtn.addEventListener('click', () => {
+    setTtsEnabled(!isTtsEnabled());
+    updateTtsToggleUI();
+    if (!isTtsEnabled()) stopSpeaking();
+  });
+  updateTtsToggleUI();
+}
+
 export function initQuiz() {
+  initTtsControls();
   document.getElementById('nextBtn').addEventListener('click', nextQuestion);
   document.getElementById('msContinue').addEventListener('click', continueRun);
   // every "back to wheel" control (quiz back, progress back, milestone return)
