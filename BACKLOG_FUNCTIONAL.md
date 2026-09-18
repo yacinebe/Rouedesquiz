@@ -13,7 +13,7 @@ Player-facing behavior & content. Under-the-hood work lives in [BACKLOG_TECHNICA
 
 | ID | Item — what & why | Size | Priority | Depends on | Status |
 |----|-------------------|:----:|:--------:|-----------|:------:|
-| F-01 | **Read-aloud (TTS)** — voice reads the question (and options) aloud for pre-readers, auto or 🔊 button. Browser `speechSynthesis`, no backend. *(idea #3)* | M | High | — | Todo |
+| F-01 | **Read-aloud (TTS)** — voice reads the question (and options) aloud for pre-readers, auto or 🔊 button. Browser `speechSynthesis`, no backend. *(idea #3)* | M | Med | — | Todo |
 | F-02 | **Difficulty UX decision** — sticky vs per-spin vs adaptive. Unblocks the difficulty feature. | S | High | — | Todo |
 | F-03 | **Difficulty selector + filter** — pick a level; quiz draws only matching questions. Data already tagged. | M | High | F-02, F-04 | Todo |
 | F-04 | **Fill facile & difficile banks** — most content is `moyen`; author level-1 & level-3 so difficulty is meaningful. *(may be served by LLM gen, F-20)* | L | High | — | Todo |
