@@ -359,6 +359,10 @@ $('#list').addEventListener('click', async e => {
     if (act === 'draft') {
       const r = await api('/api/action', { method: 'POST', body: JSON.stringify({
         kind: 'preview', backlog: story.backlog, id, title: story.title,
+        item: field('item') ? field('item').value : story.item,
+        size: field('size') ? field('size').value : story.size,
+        priority: field('priority') ? field('priority').value : story.priority,
+        depends: field('depends') ? field('depends').value : story.depends,
         brief: field('brief') ? field('brief').value : '', trigger: true }) });
       const box = card.querySelector('[data-draft]');
       field('dTitle').value = r.draft.title;
@@ -373,6 +377,10 @@ $('#list').addEventListener('click', async e => {
       const edited = box && !box.hidden;
       const r = await api('/api/action', { method: 'POST', body: JSON.stringify({
         kind: 'issue', backlog: story.backlog, id, title: story.title,
+        item: field('item') ? field('item').value : story.item,
+        size: field('size') ? field('size').value : story.size,
+        priority: field('priority') ? field('priority').value : story.priority,
+        depends: field('depends') ? field('depends').value : story.depends,
         brief: field('brief') ? field('brief').value : '', trigger: act === 'issue-run',
         titleOverride: edited ? field('dTitle').value : null,
         bodyOverride: edited ? field('dBody').value : null }) });
@@ -406,8 +414,10 @@ $('#list').addEventListener('click', async e => {
       setTimeout(() => load(), 5000);
     }
   } catch (err) {
-    (out('act') || out('save')).textContent = '';
+    const slot = out(act === 'save' ? 'save' : act === 'refine' ? 'refine' : 'act');
+    if (slot) { slot.textContent = err.message; slot.classList.add('err'); }
     $('#err').textContent = err.message;
+    console.error('[backlog]', act, err);
   } finally {
     btn.disabled = false;
   }
