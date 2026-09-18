@@ -9,14 +9,21 @@ module.exports = async (req, res) => {
   try {
     if (cache.data && Date.now() - cache.at < 20000 && !req.query.fresh) return res.json(cache.data);
 
+    // Each call degrades on its own: a token without Actions or Deployments
+    // access should still show issues and PRs, with a warning saying what's missing.
+    const warnings = [];
+    const soft = (label, p, fallback) => p.catch(e => {
+      warnings.push(`${label}: ${String(e.message || e).slice(0, 120)}`);
+      return fallback;
+    });
     const [issuesRaw, pulls, runsRaw, deploys] = await Promise.all([
-      gh(repoPath('/issues?state=all&per_page=100')),
-      gh(repoPath('/pulls?state=all&per_page=50')),
-      gh(repoPath('/actions/runs?per_page=50')),
-      gh(repoPath('/deployments?environment=Production&per_page=10')).catch(() => []),
+      soft('issues', gh(repoPath('/issues?state=all&per_page=100')), []),
+      soft('pull requests', gh(repoPath('/pulls?state=all&per_page=50')), []),
+      soft('workflow runs', gh(repoPath('/actions/runs?per_page=50')), { workflow_runs: [] }),
+      soft('deployments', gh(repoPath('/deployments?environment=Production&per_page=10')), []),
     ]);
-    const issues = issuesRaw.filter(i => !i.pull_request);
-    const runs = runsRaw.workflow_runs || [];
+    const issues = (issuesRaw || []).filter(i => !i.pull_request);
+    const runs = (runsRaw && runsRaw.workflow_runs) || [];
 
     // Preview URLs come from the Vercel bot's comment on each PR (open ones only).
     const previews = {};
@@ -70,7 +77,7 @@ module.exports = async (req, res) => {
       (byStory[id] = byStory[id] || []).push(entry);
     }
 
-    const data = { byStory, fetchedAt: new Date().toISOString() };
+    const data = { byStory, warnings, fetchedAt: new Date().toISOString() };
     cache = { at: Date.now(), data };
     res.json(data);
   } catch (e) {
