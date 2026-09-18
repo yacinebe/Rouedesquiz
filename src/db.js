@@ -288,6 +288,40 @@ export async function getProgress(profile_id) {
   }
 }
 
+/* ── Leaderboard (Phase 6) ──────────────────────────────────────
+   RLS scopes `sessions`/`profiles` to the signed-in account, so this
+   naturally compares only the sibling profiles under one family — never
+   across families. */
+
+// Lifetime totals per profile, ranked by total correct answers (ties
+// broken by accuracy). Returns [{ id, name, avatar, correct, answered,
+// accuracy }], best first.
+export async function getLeaderboard() {
+  try {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('profile_id, score, total, profiles(first_name, avatar)');
+    if (error) throw error;
+    const byProfile = {};
+    for (const s of data ?? []) {
+      const p = byProfile[s.profile_id] || (byProfile[s.profile_id] = {
+        id: s.profile_id,
+        name: (s.profiles && s.profiles.first_name) || 'Joueur',
+        avatar: (s.profiles && s.profiles.avatar) || '🙂',
+        correct: 0, answered: 0
+      });
+      p.correct += s.score;
+      p.answered += s.total;
+    }
+    return Object.values(byProfile)
+      .map(p => ({ ...p, accuracy: p.answered ? Math.round(100 * p.correct / p.answered) : 0 }))
+      .sort((a, b) => b.correct - a.correct || b.accuracy - a.accuracy);
+  } catch (e) {
+    console.warn('[db] getLeaderboard failed:', e);
+    return [];
+  }
+}
+
 // Load specific questions by id (for the "revise your mistakes" replay).
 export async function fetchQuestionsByIds(ids) {
   if (!ids || !ids.length) return [];
