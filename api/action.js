@@ -1,6 +1,8 @@
-// POST /api/action → the buttons: create an issue, start Claude, send a refinement.
-//   { kind: 'issue',   backlog, id, title, brief, trigger:true|false }
+// POST /api/action → the buttons: preview/create an issue, start Claude, send a refinement.
+//   { kind: 'preview', id, title, brief, trigger }          → composed issue, nothing created
+//   { kind: 'issue',   backlog, id, title, brief, trigger, titleOverride, bodyOverride }
 //   { kind: 'trigger', issueNumber, text? }
+//   { kind: 'reviewed', prNumber, off? }
 //   { kind: 'refine',  storyId, issueNumber, text }
 const { guard, body, gh, repoPath, writeStory } = require('./_lib');
 
@@ -12,18 +14,32 @@ module.exports = async (req, res) => {
   if (!guard(req, res)) return;
   const p = body(req);
 
+  // Exactly what would be posted — so the panel can show it before anything is created.
+  const compose = q => {
+    const file = (q.backlog === 'technical' ? 'BACKLOG_TECHNICAL.md' : 'BACKLOG_FUNCTIONAL.md');
+    const lead = q.trigger
+      ? `@claude implement ${q.id} from ${file}\n\n`
+      : `Story ${q.id}. (Comment "@claude implement this" to start.)\n\n`;
+    return {
+      title: `${q.id}: ${q.title}`,
+      body: lead + (q.brief || '').trim() + (q.trigger ? TEMPLATE_TAIL : ''),
+    };
+  };
+
   try {
+    if (p.kind === 'preview') {
+      if (!p.id || !p.title) return res.status(400).json({ error: 'id and title are required' });
+      return res.json({ ok: true, draft: compose(p) });
+    }
+
     if (p.kind === 'issue') {
       if (!p.id || !p.title) return res.status(400).json({ error: 'id and title are required' });
-      const brief = (p.brief || '').trim();
-      const lead = p.trigger
-        ? `@claude implement ${p.id} from BACKLOG_FUNCTIONAL.md\n\n`
-        : `Story ${p.id}. (Comment "@claude implement this" to start.)\n\n`;
+      const draft = compose(p);
       const issue = await gh(repoPath('/issues'), {
         method: 'POST',
         body: JSON.stringify({
-          title: `${p.id}: ${p.title}`,
-          body: lead + brief + (p.trigger ? TEMPLATE_TAIL : ''),
+          title: (p.titleOverride || draft.title).trim(),
+          body: p.bodyOverride != null ? p.bodyOverride : draft.body,
         }),
       });
       if (p.backlog && p.markInProgress !== false) {
@@ -40,6 +56,20 @@ module.exports = async (req, res) => {
         body: JSON.stringify({ body: (p.text && p.text.trim()) || '@claude implement this issue.' }),
       });
       return res.json({ ok: true, url: c.html_url });
+    }
+
+    // "Reviewed by me": a plain GitHub label on the PR, so the state is visible
+    // on GitHub too and survives a reload of the panel.
+    if (p.kind === 'reviewed') {
+      if (!p.prNumber) return res.status(400).json({ error: 'prNumber is required' });
+      if (p.off) {
+        await gh(repoPath(`/issues/${p.prNumber}/labels/reviewed`), { method: 'DELETE' }).catch(() => {});
+        return res.json({ ok: true, reviewed: false });
+      }
+      await gh(repoPath(`/issues/${p.prNumber}/labels`), {
+        method: 'POST', body: JSON.stringify({ labels: ['reviewed'] }),
+      });
+      return res.json({ ok: true, reviewed: true });
     }
 
     if (p.kind === 'refine') {

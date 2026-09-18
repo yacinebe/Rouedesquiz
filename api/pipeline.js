@@ -9,10 +9,11 @@ module.exports = async (req, res) => {
   try {
     if (cache.data && Date.now() - cache.at < 20000 && !req.query.fresh) return res.json(cache.data);
 
-    const [issuesRaw, pulls, runsRaw] = await Promise.all([
+    const [issuesRaw, pulls, runsRaw, deploys] = await Promise.all([
       gh(repoPath('/issues?state=all&per_page=100')),
       gh(repoPath('/pulls?state=all&per_page=50')),
       gh(repoPath('/actions/runs?per_page=50')),
+      gh(repoPath('/deployments?environment=Production&per_page=10')).catch(() => []),
     ]);
     const issues = issuesRaw.filter(i => !i.pull_request);
     const runs = runsRaw.workflow_runs || [];
@@ -27,6 +28,16 @@ module.exports = async (req, res) => {
           if (m) previews[p.number] = m[0];
         }
       } catch { /* preview is a nicety, never fail the whole call for it */ }
+    }));
+
+    // Vercel records a Production deployment per merge; its status tells us
+    // whether the merged code is actually live yet.
+    const prodBySha = {};
+    await Promise.all((deploys || []).slice(0, 6).map(async d => {
+      try {
+        const st = await gh(repoPath(`/deployments/${d.id}/statuses?per_page=1`));
+        prodBySha[d.sha] = { state: st[0] ? st[0].state : 'pending', url: (st[0] && st[0].target_url) || null };
+      } catch { /* deployment state is a nicety */ }
     }));
 
     const byStory = {};
@@ -47,7 +58,13 @@ module.exports = async (req, res) => {
         issue: { number: issue.number, title: issue.title, url: issue.html_url, state: issue.state },
         run: run ? { status: run.status, conclusion: run.conclusion, url: run.html_url } : null,
         branch: pr ? pr.head.ref : null,
-        pr: pr ? { number: pr.number, url: pr.html_url, state: pr.state, merged: !!pr.merged_at } : null,
+        pr: pr ? {
+          number: pr.number, url: pr.html_url, state: pr.state, merged: !!pr.merged_at,
+          mergedAt: pr.merged_at,
+          reviewed: (pr.labels || []).some(l => l.name === 'reviewed'),
+          mergeSha: pr.merge_commit_sha || null,
+          production: pr.merge_commit_sha ? (prodBySha[pr.merge_commit_sha] || null) : null,
+        } : null,
         preview: pr ? previews[pr.number] || null : null,
       };
       (byStory[id] = byStory[id] || []).push(entry);
