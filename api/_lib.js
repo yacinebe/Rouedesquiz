@@ -62,13 +62,19 @@ async function readFile(which) {
 
 function parseRows(text, which) {
   const rows = [];
+  // Rows belong to the "## <n>. <Theme>" heading above them (Graphics & Sound,
+  // Game play, Curriculum); the technical file is the Non-functional theme.
+  let theme = which === 'technical' ? 'Non-functional' : 'Unsorted';
   text.split('\n').forEach((line, i) => {
+    const h = line.match(/^##\s+(?:\d+\.\s*)?(.+?)\s*$/);
+    if (h) theme = h[1];
     const m = line.match(ROW);
     if (!m) return;
     const cells = m[2].split('|').map(c => c.trim());
     if (cells.length < 5) return;
     rows.push({
       backlog: which,
+      theme,
       id: m[1],
       line: i,
       item: cells[0],

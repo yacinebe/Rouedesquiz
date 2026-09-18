@@ -1,6 +1,8 @@
 # QuizRoulette — Technical Backlog
 
-Under-the-hood: architecture, tooling, asset pipeline, deploy, refactors, tech debt. Player-facing work lives in [BACKLOG_FUNCTIONAL.md](BACKLOG_FUNCTIONAL.md).
+**Theme 4 — Non-functional.** Under-the-hood: architecture, tooling, asset pipeline, deploy, performance, security, refactors, tech debt.
+
+The three player-facing themes — **Graphics & Sound**, **Game play**, **Curriculum** — live in [BACKLOG_FUNCTIONAL.md](BACKLOG_FUNCTIONAL.md).
 
 > **Strategic note — v2 pivot.** `T-03` (backend) is the keystone: `#1` LLM generation, `#2` profiles/leaderboard, `#4` cloud STT, and `#8` multiplayer all require it. Adopting it retires the founding guardrails *no backend · no build step · runs offline from `file://`*. Some legacy items below (`T-11`, `T-16`, `T-17`) only matter if we keep a static bank as a fallback.
 

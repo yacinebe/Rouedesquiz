@@ -64,6 +64,8 @@
   button.link { background:none; border:none; box-shadow:none; padding:0; color:var(--accent);
                 text-decoration:underline; font-size:inherit; }
   .err { color:var(--bad); font-size:.85rem; }
+  h2.theme { font-size:.85rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+             margin:22px 0 8px; display:flex; gap:8px; align-items:baseline; }
   .links { display:flex; gap:8px; flex-wrap:wrap; }
   .pill { font-size:.8rem; font-weight:600; text-decoration:none; padding:5px 11px; border-radius:999px;
           border:1px solid var(--border-strong); background:var(--surface); color:var(--ink); }
@@ -107,10 +109,12 @@
       <option value="">All priorities</option>
       <option>High</option><option>Med</option><option>Low</option>
     </select>
-    <select id="fBacklog">
-      <option value="">Both backlogs</option>
-      <option value="functional">Functional</option>
-      <option value="technical">Technical</option>
+    <select id="fTheme">
+      <option value="">All themes</option>
+      <option>Graphics &amp; Sound</option>
+      <option>Game play</option>
+      <option>Curriculum</option>
+      <option>Non-functional</option>
     </select>
   </div>
 
@@ -143,12 +147,15 @@ async function loadDemo() {
   stories = [];
   for (const [backlog, path] of Object.entries(files)) {
     const md = await (await fetch(path)).text();
+    let theme = backlog === 'technical' ? 'Non-functional' : 'Unsorted';
     md.split('\n').forEach(line => {
+      const h = line.match(/^##\s+(?:\d+\.\s*)?(.+?)\s*$/);
+      if (h) theme = h[1];
       const m = line.match(ROW);
       if (!m) return;
       const c = m[2].split('|').map(x => x.trim());
       if (c.length < 5) return;
-      stories.push({ backlog, id: m[1], item: c[0], size: c[1], priority: c[2], depends: c[3],
+      stories.push({ backlog, theme, id: m[1], item: c[0], size: c[1], priority: c[2], depends: c[3],
         status: c[4], title: (c[0].match(/\*\*(.+?)\*\*/) || [, c[0].split('—')[0]])[1].trim() });
     });
   }
@@ -213,7 +220,7 @@ async function load() {
   render();
 }
 $('#refresh').addEventListener('click', () => load().catch(e => $('#err').textContent = e.message));
-['#q', '#fStatus', '#fPrio', '#fBacklog'].forEach(s => $(s).addEventListener('input', render));
+['#q', '#fStatus', '#fPrio', '#fTheme'].forEach(s => $(s).addEventListener('input', render));
 
 // ── pipeline checklist ────────────────────────────────────────────────
 // Seven fixed steps, always all shown so you can see where a story stands:
@@ -297,12 +304,19 @@ function latestIssue(id) {
 
 // ── render ────────────────────────────────────────────────────────────
 function render() {
-  const q = $('#q').value.toLowerCase(), fs = $('#fStatus').value, fp = $('#fPrio').value, fb = $('#fBacklog').value;
+  const q = $('#q').value.toLowerCase(), fs = $('#fStatus').value, fp = $('#fPrio').value, ft = $('#fTheme').value;
   const rows = stories.filter(s =>
-    (!fs || s.status === fs) && (!fp || s.priority === fp) && (!fb || s.backlog === fb) &&
+    (!fs || s.status === fs) && (!fp || s.priority === fp) && (!ft || s.theme === ft) &&
     (!q || (s.id + ' ' + s.item).toLowerCase().includes(q)));
 
-  $('#list').innerHTML = rows.map(s => {
+  // Grouped under the four themes, in their canonical order.
+  const order = ['Graphics & Sound', 'Game play', 'Curriculum', 'Non-functional'];
+  const groups = [...new Set(rows.map(r => r.theme))]
+    .sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+
+  $('#list').innerHTML = groups.map(g =>
+    `<h2 class="theme">${g} <span class="muted">${rows.filter(r => r.theme === g).length}</span></h2>`
+    + rows.filter(r => r.theme === g).map(s => {
     const isOpen = open.has(s.id);
     const issueNo = latestIssue(s.id);
     return `<div class="card" data-id="${s.id}" data-backlog="${s.backlog}">
@@ -356,7 +370,7 @@ function render() {
         </div>
       </div>` : ''}
     </div>`;
-  }).join('') || '<p class="muted">No stories.</p>';
+  }).join('')).join('') || '<p class="muted">No stories.</p>';
 }
 
 // What the issue is built from: whatever is in the fields right now, so edits
