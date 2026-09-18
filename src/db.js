@@ -288,6 +288,39 @@ export async function getProgress(profile_id) {
   }
 }
 
+// Leaderboard: lifetime correct answers + accuracy per profile, for every
+// profile under the signed-in account (RLS scopes both tables to the owner,
+// so this naturally compares siblings only — never across families).
+// Returns rows sorted best-first: total correct answers, then accuracy %.
+export async function getLeaderboard() {
+  try {
+    const [{ data: profiles, error: perr }, { data: attempts, error: aerr }] = await Promise.all([
+      supabase.from('profiles').select('id, first_name, avatar, name').order('created_at', { ascending: true }),
+      supabase.from('attempts').select('profile_id, is_correct')
+    ]);
+    if (perr) throw perr;
+    if (aerr) throw aerr;
+
+    const stats = {};
+    for (const a of attempts ?? []) {
+      const s = stats[a.profile_id] || (stats[a.profile_id] = { answered: 0, correct: 0 });
+      s.answered++;
+      if (a.is_correct) s.correct++;
+    }
+    return (profiles ?? [])
+      .map(p => {
+        const s = stats[p.id] || { answered: 0, correct: 0 };
+        const accuracy = s.answered ? Math.round(100 * s.correct / s.answered) : 0;
+        return { id: p.id, first_name: p.first_name || p.name || 'Joueur', avatar: p.avatar,
+                 answered: s.answered, correct: s.correct, accuracy };
+      })
+      .sort((a, b) => b.correct - a.correct || b.accuracy - a.accuracy);
+  } catch (e) {
+    console.warn('[db] getLeaderboard failed:', e);
+    return [];
+  }
+}
+
 // Load specific questions by id (for the "revise your mistakes" replay).
 export async function fetchQuestionsByIds(ids) {
   if (!ids || !ids.length) return [];

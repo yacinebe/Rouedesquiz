@@ -132,6 +132,26 @@
   .prog-replay { padding: 9px 18px; font-size: .95rem; }
   .prog-done { font-family: 'Nunito', sans-serif; font-size: .88rem; opacity: .6; }
 
+  /* Wheel-screen secondary actions ("Mes progrès" + "Classement") side by side */
+  .wheel-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .wheel-actions .btn-secondary { padding: 12px 22px; font-size: .95rem; }
+
+  /* ── LEADERBOARD PAGE (F-16) ── */
+  #leaderboardScreen { justify-content: flex-start; padding: 18px 16px 60px; gap: 14px; }
+  .leaderboard-body { width: min(560px, 94vw); display: flex; flex-direction: column; gap: 10px; }
+  .lb-card {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 18px; padding: 12px 16px; text-align: left;
+  }
+  .lb-card.lb-me { border-color: #FFE66D; background: rgba(255,230,109,0.12); }
+  .lb-rank { font-size: 1.3rem; font-family: 'Fredoka One', cursive; width: 34px; text-align: center; flex-shrink: 0; }
+  .lb-avatar { font-size: 1.8rem; flex-shrink: 0; }
+  .lb-info { display: flex; flex-direction: column; gap: 2px; }
+  .lb-name { font-family: 'Fredoka One', cursive; font-size: 1.05rem; }
+  .lb-stats { font-family: 'Nunito', sans-serif; font-size: .88rem; opacity: .85; }
+  .lb-stats b { font-family: 'Fredoka One', cursive; opacity: 1; }
+
   /* ── WELCOME / AUTH SCREENS ── */
   #welcomeScreen { gap: 20px; padding: 24px; text-align: center; }
   .welcome-wheel { width: min(180px, 44vw); height: min(180px, 44vw); filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
