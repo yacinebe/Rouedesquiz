@@ -29,7 +29,7 @@ Player-facing behavior & content. Under-the-hood work lives in [BACKLOG_TECHNICA
 | F-13 | **Voice answering** — child speaks the answer; STT interprets & checks it. Hands-free with F-01. *(idea #4)* | L | Low | T-09, T-10 | Todo |
 | F-14 | **Advanced (open-ended) mode** — pick a theme → harder question with no multiple-choice options. *(idea #7)* | M | Low | F-20, T-09 | Todo |
 | F-15 | **Session modes** — ~~beyond 3/spin~~: the loop is now an **endless run per theme with a milestone every 10** (continue / back to wheel), replacing the fixed 3-per-spin. Timed "défi" mode still open. | M | Low | — | In progress |
-| F-16 | **Leaderboard** — compare scores across players. *(idea #2)* | M | Low | F-10, T-05 | Todo |
+| F-16 | **Leaderboard** — compare scores across players. *(idea #2)* | M | Low | F-10, T-05 | In progress |
 | F-17 | **Multiplayer / contest** — play with friends; async (compare later) or real-time head-to-head. *(idea #8)* | XL | Low | F-16, T-03, T-05 | Todo |
 | F-18 | **Audio-prompt questions** — sound *is* the prompt (animal sounds, Arabic pronunciation). | L | Low | T-15 | Todo |
 | F-19 | **Surprise theme special behavior** — keep "random theme" or make it silly/jokes/mini-game. *(superseded by F-32 — Surprise becomes a mix of all themes)* | M | Low | — | Todo |
