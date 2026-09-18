@@ -95,6 +95,8 @@
     <button class="ghost" id="refresh">↻</button>
   </header>
 
+  <p class="err" id="warn"></p>
+
   <div class="filters">
     <input id="q" placeholder="Search…">
     <select id="fStatus">
@@ -205,7 +207,8 @@ async function load() {
     api('/api/pipeline').catch(e => ({ byStory: {}, warnings: [`pipeline unavailable: ${e.message}`] })),
   ]);
   stories = b.stories; pipeline = p.byStory || {};
-  $('#err').textContent = (p.warnings || []).join(' · ');
+  const warn = p.warnings || [];
+  $('#warn').textContent = warn.length ? `GitHub state incomplete — ${warn.join(' · ')}` : '';
   $('#stamp').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   render();
 }
@@ -356,6 +359,19 @@ function render() {
   }).join('') || '<p class="muted">No stories.</p>';
 }
 
+// What the issue is built from: whatever is in the fields right now, so edits
+// made but not yet saved still reach the issue.
+const storyPayload = (story, field) => ({
+  backlog: story.backlog,
+  id: story.id,
+  title: story.title,
+  item: field('item') ? field('item').value : story.item,
+  size: field('size') ? field('size').value : story.size,
+  priority: field('priority') ? field('priority').value : story.priority,
+  depends: field('depends') ? field('depends').value : story.depends,
+  brief: field('brief') ? field('brief').value : '',
+});
+
 const sel = (f, opts, val) => `<select data-f="${f}">${opts.map(o =>
   `<option${o === val ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
 const esc = s => (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -392,14 +408,11 @@ $('#list').addEventListener('click', async e => {
     }
 
     if (act === 'draft') {
-      const r = await api('/api/action', { method: 'POST', body: JSON.stringify({
-        kind: 'preview', backlog: story.backlog, id, title: story.title,
-        item: field('item') ? field('item').value : story.item,
-        size: field('size') ? field('size').value : story.size,
-        priority: field('priority') ? field('priority').value : story.priority,
-        depends: field('depends') ? field('depends').value : story.depends,
-        brief: field('brief') ? field('brief').value : '', trigger: true }) });
+      out('act').textContent = 'Composing…';
       const box = card.querySelector('[data-draft]');
+      if (!box) throw new Error('This story already has an issue — nothing to draft.');
+      const r = await api('/api/action', { method: 'POST', body: JSON.stringify(
+        { kind: 'preview', trigger: true, ...storyPayload(story, field) }) });
       field('dTitle').value = r.draft.title;
       field('dBody').value = r.draft.body;
       box.hidden = false;
@@ -411,12 +424,7 @@ $('#list').addEventListener('click', async e => {
       const box = card.querySelector('[data-draft]');
       const edited = box && !box.hidden;
       const r = await api('/api/action', { method: 'POST', body: JSON.stringify({
-        kind: 'issue', backlog: story.backlog, id, title: story.title,
-        item: field('item') ? field('item').value : story.item,
-        size: field('size') ? field('size').value : story.size,
-        priority: field('priority') ? field('priority').value : story.priority,
-        depends: field('depends') ? field('depends').value : story.depends,
-        brief: field('brief') ? field('brief').value : '', trigger: act === 'issue-run',
+        kind: 'issue', trigger: act === 'issue-run', ...storyPayload(story, field),
         titleOverride: edited ? field('dTitle').value : null,
         bodyOverride: edited ? field('dBody').value : null }) });
       out('act').innerHTML = `Issue <a href="${r.issue.url}" target="_blank">#${r.issue.number}</a> created${act === 'issue-run' ? ' — Claude is starting' : ''}`;
