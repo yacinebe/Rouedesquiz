@@ -156,6 +156,13 @@
 
 <!-- ══════════════ QUIZ SCREEN ══════════════ -->
 <div id="quizScreen" class="screen">
+  <!-- Mode Merveilleux (F-35): ambient background wash, behind the card -->
+  <div class="mv-scene-bg" id="mvSceneBg" aria-hidden="true">
+    <div class="mv-sparkle-field"></div>
+    <div class="mv-rainbow-sweep mv-rainbow-sweep-1"></div>
+    <div class="mv-rainbow-sweep mv-rainbow-sweep-2"></div>
+  </div>
+
   <div class="quiz-header">
     <button class="back-btn" data-action="wheel">← Roue</button>
     <div class="quiz-cat-badge" id="catBadge"></div>
@@ -166,7 +173,6 @@
   <div class="progress-dots" id="progressDots"></div>
 
   <div class="question-card" id="questionCard">
-    <div class="mv-companion" id="mvCompanion"></div>
     <div class="question-image-wrap" id="questionImageWrap" style="display:none;"></div>
     <div class="question-num" id="questionNum"></div>
     <div class="question-origin" id="questionOrigin" style="display:none;"></div>
@@ -174,6 +180,22 @@
     <div class="choices" id="choices"></div>
     <div class="feedback" id="feedback"></div>
     <button class="next-btn" id="nextBtn"></button>
+  </div>
+
+  <!-- Mode Merveilleux (F-35): galloping unicorns, above the card -->
+  <div class="mv-scene-fg" id="mvScene" aria-hidden="true">
+    <div class="mv-gallop mv-gallop-1">
+      <span class="mv-trail-spark s1"></span>
+      <span class="mv-trail-spark s2"></span>
+      <span class="mv-trail-spark s3"></span>
+      <div class="mv-gallop-icon" id="mvGallop1"></div>
+    </div>
+    <div class="mv-gallop mv-gallop-2">
+      <span class="mv-trail-spark s1"></span>
+      <span class="mv-trail-spark s2"></span>
+      <span class="mv-trail-spark s3"></span>
+      <div class="mv-gallop-icon" id="mvGallop2"></div>
+    </div>
   </div>
 </div>
 
