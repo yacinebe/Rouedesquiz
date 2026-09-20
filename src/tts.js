@@ -62,9 +62,9 @@ export function speak(text) {
 }
 
 // Same as speak(), but takes [{ text, lang }] parts (lang: 'fr' | 'ar') and
-// reads them back to back — used for Arabe questions so the Arabic word is
-// pronounced with an Arabic voice (when the browser/OS has one) right after
-// the French instructions, instead of a French voice guessing at Arabic script.
+// reads them back to back — each part gets the matching voice/lang, so e.g.
+// an all-Arabic question is read with an Arabic voice (when the browser/OS
+// has one) instead of a French voice guessing at Arabic script.
 export function speakParts(parts) {
   if (!isTtsSupported() || !parts || parts.length === 0) return;
   window.speechSynthesis.cancel();
