@@ -281,7 +281,7 @@ function selectAnswer(chosen) {
     }
   }
 
-  if (isCorrect && runTheme === 'merveilleux') bounceCompanion();
+  if (isCorrect && runTheme === 'merveilleux') pulseMerveilleuxScene();
 
   // Record the attempt (fire-and-forget; no-ops for guests / offline)
   logAttempt({
@@ -386,15 +386,16 @@ function closeMerveilleuxPopup() {
   document.getElementById('mvPopup').style.display = 'none';
 }
 
-// Small bounce on the question-card companion when a Merveilleux answer is
-// correct (removed again on animationend so it can re-trigger next time).
-function bounceCompanion() {
-  const el = document.getElementById('mvCompanion');
+// F-35: brief flourish across the galloping-unicorn scene when a Merveilleux
+// answer is correct — a flash on both unicorns (removed again after the
+// animation so it can re-trigger next time).
+function pulseMerveilleuxScene() {
+  const el = document.getElementById('mvScene');
   if (!el) return;
-  el.classList.remove('bounce');
+  el.classList.remove('leap');
   void el.offsetWidth; // reflow, so re-adding the class restarts the animation
-  el.classList.add('bounce');
-  el.addEventListener('animationend', () => el.classList.remove('bounce'), { once: true });
+  el.classList.add('leap');
+  setTimeout(() => el.classList.remove('leap'), 650);
 }
 
 // Jump straight into Mode Merveilleux (from the popup's "Jouer maintenant"
@@ -532,8 +533,10 @@ export function initQuiz() {
   if (entryIcon) entryIcon.innerHTML = unicornSVG('entry');
   const popupUnicorn = document.getElementById('mvPopupUnicorn');
   if (popupUnicorn) popupUnicorn.innerHTML = unicornSVG('popup');
-  const companion = document.getElementById('mvCompanion');
-  if (companion) companion.innerHTML = unicornSVG('companion');
+  const gallop1 = document.getElementById('mvGallop1');
+  if (gallop1) gallop1.innerHTML = unicornSVG('gallop1');
+  const gallop2 = document.getElementById('mvGallop2');
+  if (gallop2) gallop2.innerHTML = unicornSVG('gallop2');
 
   document.addEventListener('keydown', onCheatKeydown);
   const wheelTitle = document.getElementById('wheelTitle');

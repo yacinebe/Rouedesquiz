@@ -741,40 +741,139 @@
     background: rgba(255,182,246,.18);
   }
 
-  /* Question-card companion — peeks over the top-right corner (outside the
-     card's own box) so it never crowds the question text or choices, even
-     on a narrow ~400px phone. */
-  .mv-companion { display: none; pointer-events: none; z-index: 2; }
-  #quizScreen.merveilleux-mode .mv-companion {
+  /* ── Mode Merveilleux scene (F-35) — the unicorn gallops around the whole
+     screen instead of sitting as a small corner companion. Two layers:
+     - .mv-scene-bg: ambient sparkle field + rainbow sweeps, tucked *behind*
+       the question card (negative z-index) so text stays fully readable.
+     - .mv-scene-fg: the big galloping unicorns, *above* the card (the card
+       spans ~full width on phones, so keeping them behind would make them
+       nearly invisible — a brief pass over the card is fine since they're
+       pointer-events:none and every crossing is transient). ──────────────── */
+  .mv-scene-bg, .mv-scene-fg { display: none; }
+  #quizScreen.merveilleux-mode .mv-scene-bg,
+  #quizScreen.merveilleux-mode .mv-scene-fg {
     display: block;
     position: absolute;
-    top: -22px; right: 16px;
-    width: 50px; height: 50px;
-    animation: mvCompanionFloat 3.4s ease-in-out infinite;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
-  @keyframes mvCompanionFloat {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50%      { transform: translateY(-6px) rotate(3deg); }
+  #quizScreen.merveilleux-mode .mv-scene-bg { z-index: -1; }
+  #quizScreen.merveilleux-mode .mv-scene-fg { z-index: 5; }
+
+  .mv-sparkle-field {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(2px 2px at 8% 15%, #fff6c9 0%, transparent 100%),
+      radial-gradient(2px 2px at 22% 60%, #ffe6fb 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 38% 30%, #e0f2ff 0%, transparent 100%),
+      radial-gradient(2px 2px at 55% 78%, #fff6c9 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 68% 20%, #ffe6fb 0%, transparent 100%),
+      radial-gradient(2px 2px at 80% 55%, #e0f2ff 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 92% 35%, #fff6c9 0%, transparent 100%),
+      radial-gradient(2px 2px at 12% 85%, #ffe6fb 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 46% 10%, #e0f2ff 0%, transparent 100%),
+      radial-gradient(2px 2px at 30% 92%, #fff6c9 0%, transparent 100%);
+    opacity: .6;
+    animation: mvFieldTwinkle 2.4s ease-in-out infinite;
   }
-  #quizScreen.merveilleux-mode .mv-companion.bounce {
-    animation: mvCompanionBounce 0.6s ease;
-  }
-  @keyframes mvCompanionBounce {
-    0%   { transform: translateY(0) scale(1) rotate(0deg); }
-    30%  { transform: translateY(-16px) scale(1.18) rotate(-6deg); }
-    55%  { transform: translateY(0) scale(0.94) rotate(4deg); }
-    80%  { transform: translateY(-6px) scale(1.06) rotate(0deg); }
-    100% { transform: translateY(0) scale(1) rotate(0deg); }
+  @keyframes mvFieldTwinkle {
+    0%, 100% { opacity: .35; }
+    50%      { opacity: .9; }
   }
 
-  /* Gentle-motion only — never withhold the unlock celebration itself. */
+  .mv-rainbow-sweep {
+    position: absolute;
+    top: -20%; left: -30%;
+    width: 160%; height: 140%;
+    background: linear-gradient(100deg,
+      transparent 0%, rgba(255,155,238,.16) 20%, rgba(192,132,252,.16) 35%,
+      rgba(96,175,255,.16) 50%, rgba(255,230,109,.16) 65%, transparent 85%);
+    transform: translateX(-60%) rotate(8deg);
+    animation: mvRainbowSweep 9s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+  .mv-rainbow-sweep-2 { animation-duration: 13s; animation-delay: -4s; opacity: .7; }
+  @keyframes mvRainbowSweep {
+    0%, 100% { transform: translateX(-60%) rotate(8deg); }
+    50%      { transform: translateX(20%) rotate(8deg); }
+  }
+
+  /* Galloping unicorns — one bigger/faster in front, one smaller/slower
+     behind for a little depth, crossing in opposite directions. */
+  .mv-gallop {
+    position: absolute;
+    top: 18%; left: 0;
+    animation: mvGallopRight 11s linear infinite;
+  }
+  .mv-gallop-2 {
+    top: 72%;
+    animation: mvGallopLeft 15s linear infinite;
+    animation-delay: -5s;
+    opacity: .85;
+  }
+  @keyframes mvGallopRight {
+    from { transform: translateX(-180px); }
+    to   { transform: translateX(calc(100vw + 180px)); }
+  }
+  @keyframes mvGallopLeft {
+    from { transform: translateX(calc(100vw + 180px)) scaleX(-1); }
+    to   { transform: translateX(-180px) scaleX(-1); }
+  }
+  .mv-gallop-icon {
+    width: 150px; height: 150px;
+    filter: drop-shadow(0 10px 18px rgba(192,132,252,.45));
+    animation: mvGallopBob 0.6s ease-in-out infinite;
+  }
+  .mv-gallop-2 .mv-gallop-icon { width: 105px; height: 105px; }
+  @keyframes mvGallopBob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(-16px) rotate(4deg); }
+  }
+  /* One-shot flourish on a correct Merveilleux answer (see pulseMerveilleuxScene() in quiz.js) */
+  #mvScene.leap .mv-gallop-icon {
+    animation: mvGallopBob 0.6s ease-in-out infinite, mvLeapFlash .6s ease;
+  }
+  @keyframes mvLeapFlash {
+    0%, 100% { filter: drop-shadow(0 10px 18px rgba(192,132,252,.45)) brightness(1); }
+    40%      { filter: drop-shadow(0 14px 26px rgba(255,255,255,.9)) brightness(1.6); }
+  }
+
+  /* Trail sparks — sit just behind the unicorn (toward where it came from)
+     and twinkle in sequence to read as a shimmering trail while it moves. */
+  .mv-trail-spark {
+    position: absolute;
+    top: 55%;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6c9, transparent 70%);
+    animation: mvTrailTwinkle 0.9s ease-in-out infinite;
+  }
+  .mv-trail-spark.s1 { left: -22px; animation-delay: 0s; }
+  .mv-trail-spark.s2 { left: -42px; animation-delay: .15s; background: radial-gradient(circle, #ffe6fb, transparent 70%); }
+  .mv-trail-spark.s3 { left: -64px; animation-delay: .3s;  background: radial-gradient(circle, #e0f2ff, transparent 70%); }
+  @keyframes mvTrailTwinkle {
+    0%, 100% { opacity: 0; transform: scale(.5); }
+    50%      { opacity: .9; transform: scale(1.1); }
+  }
+
+  /* Gentle-motion only — never withhold the unlock celebration itself.
+     The galloping/sweeping motion *is* the feature, so reduced-motion drops
+     it to a calmer static sparkle wash instead of trying to fake stillness
+     mid-animation (which would just look like a unicorn frozen off-screen). */
   @media (prefers-reduced-motion: reduce) {
     .mv-entry-btn,
     .unicorn-svg .mv-horn,
     .unicorn-svg .mv-spark,
-    .mv-spark-float,
-    #quizScreen.merveilleux-mode .mv-companion,
-    #quizScreen.merveilleux-mode .mv-companion.bounce {
+    .mv-spark-float {
       animation: none !important;
+    }
+    #quizScreen.merveilleux-mode .mv-scene-fg,
+    #quizScreen.merveilleux-mode .mv-rainbow-sweep {
+      display: none;
+    }
+    #quizScreen.merveilleux-mode .mv-sparkle-field {
+      animation: none !important;
+      opacity: .5;
     }
   }
