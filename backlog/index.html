@@ -260,7 +260,9 @@ function pipeHTML(id, story) {
 
     const merged = pr && pr.merged
       ? ['done', '✓', `Merged into main${pr.mergedAt ? ` — ${new Date(pr.mergedAt).toLocaleDateString('en-GB')}` : ''}`]
-      : pr ? ['todo', '○', 'Merged into main'] : ['todo', '○', 'Merged into main'];
+      : pr && pr.reviewed
+      ? ['busy', '◐', `Merged into main — <button class="link" data-act="merge" data-pr="${pr.number}">merge #${pr.number} now</button>`]
+      : ['todo', '○', 'Merged into main'];
 
     const dep = pr && pr.production;
     const prod = !pr || !pr.merged ? ['todo', '○', 'Live in production']
@@ -456,6 +458,17 @@ $('#list').addEventListener('click', async e => {
       await api('/api/action', { method: 'POST', body: JSON.stringify({
         kind: 'reviewed', prNumber: Number(btn.dataset.pr) }) });
       await load();
+      return;
+    }
+
+    if (act === 'merge') {
+      const n = Number(btn.dataset.pr);
+      if (!confirm(`Merge PR #${n} into main? This deploys to production.`)) { btn.disabled = false; return; }
+      $('#err').textContent = '';
+      const r = await api('/api/action', { method: 'POST', body: JSON.stringify({ kind: 'merge', prNumber: n }) });
+      await load();
+      $('#warn').textContent = r.alreadyMerged
+        ? `PR #${n} was already merged.` : `PR #${n} merged — Vercel is deploying to production.`;
       return;
     }
 

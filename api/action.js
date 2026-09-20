@@ -3,6 +3,7 @@
 //   { kind: 'issue',   backlog, id, title, brief, trigger, titleOverride, bodyOverride }
 //   { kind: 'trigger', issueNumber, text? }
 //   { kind: 'reviewed', prNumber, off? }
+//   { kind: 'merge',   prNumber }            → squash-merge a reviewed PR, delete the branch
 //   { kind: 'refine',  storyId, issueNumber, text }
 const { guard, body, gh, repoPath, writeStory } = require('./_lib');
 
@@ -86,6 +87,29 @@ module.exports = async (req, res) => {
         method: 'POST', body: JSON.stringify({ labels: ['reviewed'] }),
       });
       return res.json({ ok: true, reviewed: true });
+    }
+
+    // Merge a reviewed PR. Deliberately squash + delete the branch, and refuse
+    // unless the panel has marked it reviewed — merging is the one step that
+    // reaches production, so it shouldn't be a stray tap.
+    if (p.kind === 'merge') {
+      if (!p.prNumber) return res.status(400).json({ error: 'prNumber is required' });
+      const pr = await gh(repoPath(`/pulls/${p.prNumber}`));
+      if (pr.merged) return res.json({ ok: true, alreadyMerged: true, number: pr.number });
+      if (pr.state !== 'open') return res.status(400).json({ error: `PR #${pr.number} is ${pr.state}` });
+      if (pr.mergeable === false) {
+        return res.status(400).json({ error: `PR #${pr.number} has conflicts — resolve them on GitHub` });
+      }
+      if (!(pr.labels || []).some(l => l.name === 'reviewed')) {
+        return res.status(400).json({ error: 'Mark it reviewed first.' });
+      }
+      const result = await gh(repoPath(`/pulls/${p.prNumber}/merge`), {
+        method: 'PUT',
+        body: JSON.stringify({ merge_method: 'squash', commit_title: `${pr.title} (#${pr.number})` }),
+      });
+      // Tidy up; a failure here doesn't undo the merge.
+      await gh(repoPath(`/git/refs/heads/${pr.head.ref}`), { method: 'DELETE' }).catch(() => {});
+      return res.json({ ok: true, merged: !!result.merged, number: pr.number, sha: result.sha });
     }
 
     if (p.kind === 'refine') {
