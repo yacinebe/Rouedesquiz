@@ -111,12 +111,26 @@ function isArabeQuestion(q) {
   return !!q && (runTheme === 'arabe' || (q.origin && q.origin.cls === 'arabe'));
 }
 
+// Emoji have no spoken form in Arabic (or any language) — an Arabic voice
+// asked to read one tends to stumble/garble, so strip it before speaking.
+function stripEmojiForSpeech(text) {
+  return text.replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
+}
+
 function speechPartsForQuestion(q) {
   if (!q) return [];
   if (isArabeQuestion(q)) {
+    // One utterance per sentence (question, then each option) instead of a
+    // single long combined string: browsers' speechSynthesis is known to
+    // stall/cut off on long utterances, which sounded "choppy"/garbled —
+    // short back-to-back utterances play far more reliably and give the
+    // question and each option a clean pause between them.
     const arLetters = ['أ', 'ب', 'ج', 'د'];
-    const opts = q.options.map((o, i) => `الإجابة ${arLetters[i]}: ${o}.`).join(' ');
-    return [{ text: `${q.question} ${opts}`, lang: 'ar' }];
+    const parts = [{ text: stripEmojiForSpeech(q.question), lang: 'ar' }];
+    q.options.forEach((o, i) => {
+      parts.push({ text: `الإجابة ${arLetters[i]}: ${stripEmojiForSpeech(o)}.`, lang: 'ar' });
+    });
+    return parts;
   }
   const letters = ['A', 'B', 'C', 'D'];
   const opts = q.options.map((o, i) => `Réponse ${letters[i]} : ${o}.`).join(' ');
