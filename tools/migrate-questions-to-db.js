@@ -24,10 +24,21 @@ const fs = require('fs');
 const path = require('path');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+// Prefer the new-style secret key (sb_secret_…); fall back to the legacy
+// service_role JWT for as long as legacy keys are still enabled.
+const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error('Missing env. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY).');
+  console.error('Missing env. Set SUPABASE_URL and SUPABASE_SECRET_KEY (or the legacy SUPABASE_SERVICE_ROLE_KEY).');
+  process.exit(1);
+}
+// A key with spaces, arrows or accents is almost always pasted placeholder text,
+// and would otherwise fail deep inside fetch with an unreadable ByteString error.
+if (/[^\x21-\x7E]/.test(SERVICE_KEY)) {
+  console.error('That key contains characters a key never has (spaces, arrows, accents…).');
+  console.error('It looks like placeholder text rather than the key itself. Copy it from');
+  console.error('Supabase → Settings → API Keys, and clear any stale variable:');
+  console.error('  Remove-Item Env:SUPABASE_SERVICE_ROLE_KEY -ErrorAction SilentlyContinue');
   process.exit(1);
 }
 if (typeof fetch !== 'function') {
