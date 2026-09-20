@@ -4,7 +4,7 @@ import { showScreen, launchConfetti, shuffle, unicornSVG } from './ui.js';
 import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
-import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speak, stopSpeaking } from './tts.js';
+import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speakParts, stopSpeaking } from './tts.js';
 
 // Surprise draws from every other theme, in equal shares — each question
 // keeps a tag back to its real theme so it can still be shown/answered correctly.
@@ -104,11 +104,21 @@ function setBadgeScore() {
 
 // F-01: what gets read aloud — the question, then each option prefixed by
 // its letter so a pre-reader can still tell them apart when picking.
-function speechTextForQuestion(q) {
-  if (!q) return '';
+// F-43: Arabe questions also carry an Arabic word/letter between « » — read
+// that part with an Arabic voice/lang so it's pronounced natively, instead of
+// a French voice guessing at Arabic script.
+const ARABIC_WORD_RE = /«\s*([؀-ۿ][؀-ۿ\s]*)\s*»/;
+
+function speechPartsForQuestion(q) {
+  if (!q) return [];
   const letters = ['A', 'B', 'C', 'D'];
   const opts = q.options.map((o, i) => `Réponse ${letters[i]} : ${o}.`).join(' ');
-  return `${q.question} ${opts}`;
+  const parts = [{ text: `${q.question} ${opts}`, lang: 'fr' }];
+
+  const isArabe = runTheme === 'arabe' || (q.origin && q.origin.cls === 'arabe');
+  const match = isArabe && q.question.match(ARABIC_WORD_RE);
+  if (match) parts.push({ text: match[1], lang: 'ar' });
+  return parts;
 }
 
 function renderQuestion() {
@@ -193,7 +203,7 @@ function renderQuestion() {
   card.offsetHeight; // reflow
   card.style.animation = '';
 
-  if (isTtsSupported() && isTtsEnabled()) speak(speechTextForQuestion(q));
+  if (isTtsSupported() && isTtsEnabled()) speakParts(speechPartsForQuestion(q));
 }
 
 function selectAnswer(chosen) {
@@ -456,7 +466,7 @@ function initTtsControls() {
     return;
   }
   initTts();
-  replayBtn.addEventListener('click', () => speak(speechTextForQuestion(currentQ)));
+  replayBtn.addEventListener('click', () => speakParts(speechPartsForQuestion(currentQ)));
   toggleBtn.addEventListener('click', () => {
     setTtsEnabled(!isTtsEnabled());
     updateTtsToggleUI();
