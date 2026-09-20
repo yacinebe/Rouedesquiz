@@ -39,6 +39,19 @@ export function stopSpeaking() {
   if (isTtsSupported()) window.speechSynthesis.cancel();
 }
 
+// Chromium's speechSynthesis silently stalls/cuts speech off after ~15s
+// unless it's nudged with pause()+resume() — a well-known engine bug, and
+// extra insurance alongside the shorter per-sentence utterances in quiz.js.
+// Harmless no-op on engines without the bug.
+if (isTtsSupported()) {
+  setInterval(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 10000);
+}
+
 function queueUtterance(text, lang) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 0.92;
@@ -62,9 +75,9 @@ export function speak(text) {
 }
 
 // Same as speak(), but takes [{ text, lang }] parts (lang: 'fr' | 'ar') and
-// reads them back to back — used for Arabe questions so the Arabic word is
-// pronounced with an Arabic voice (when the browser/OS has one) right after
-// the French instructions, instead of a French voice guessing at Arabic script.
+// reads them back to back — each part gets the matching voice/lang, so e.g.
+// an all-Arabic question is read with an Arabic voice (when the browser/OS
+// has one) instead of a French voice guessing at Arabic script.
 export function speakParts(parts) {
   if (!isTtsSupported() || !parts || parts.length === 0) return;
   window.speechSynthesis.cancel();

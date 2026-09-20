@@ -104,21 +104,37 @@ function setBadgeScore() {
 
 // F-01: what gets read aloud — the question, then each option prefixed by
 // its letter so a pre-reader can still tell them apart when picking.
-// F-43: Arabe questions also carry an Arabic word/letter between « » — read
-// that part with an Arabic voice/lang so it's pronounced natively, instead of
-// a French voice guessing at Arabic script.
-const ARABIC_WORD_RE = /«\s*([؀-ۿ][؀-ۿ\s]*)\s*»/;
+// F-43 refinement (#20): Arabe questions are now fully Arabic text, so
+// they're read entirely with an Arabic voice/lang — labels included —
+// instead of only the embedded word.
+function isArabeQuestion(q) {
+  return !!q && (runTheme === 'arabe' || (q.origin && q.origin.cls === 'arabe'));
+}
+
+// Emoji have no spoken form in Arabic (or any language) — an Arabic voice
+// asked to read one tends to stumble/garble, so strip it before speaking.
+function stripEmojiForSpeech(text) {
+  return text.replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
+}
 
 function speechPartsForQuestion(q) {
   if (!q) return [];
+  if (isArabeQuestion(q)) {
+    // One utterance per sentence (question, then each option) instead of a
+    // single long combined string: browsers' speechSynthesis is known to
+    // stall/cut off on long utterances, which sounded "choppy"/garbled —
+    // short back-to-back utterances play far more reliably and give the
+    // question and each option a clean pause between them.
+    const arLetters = ['أ', 'ب', 'ج', 'د'];
+    const parts = [{ text: stripEmojiForSpeech(q.question), lang: 'ar' }];
+    q.options.forEach((o, i) => {
+      parts.push({ text: `الإجابة ${arLetters[i]}: ${stripEmojiForSpeech(o)}.`, lang: 'ar' });
+    });
+    return parts;
+  }
   const letters = ['A', 'B', 'C', 'D'];
   const opts = q.options.map((o, i) => `Réponse ${letters[i]} : ${o}.`).join(' ');
-  const parts = [{ text: `${q.question} ${opts}`, lang: 'fr' }];
-
-  const isArabe = runTheme === 'arabe' || (q.origin && q.origin.cls === 'arabe');
-  const match = isArabe && q.question.match(ARABIC_WORD_RE);
-  if (match) parts.push({ text: match[1], lang: 'ar' });
-  return parts;
+  return [{ text: `${q.question} ${opts}`, lang: 'fr' }];
 }
 
 function renderQuestion() {
@@ -129,7 +145,11 @@ function renderQuestion() {
   const posInBlock = runCount % MILESTONE;   // answered so far in the current block
 
   document.getElementById('questionNum').textContent = `Question ${runCount + 1}`;
-  document.getElementById('questionText').textContent = q.question;
+  const questionTextEl = document.getElementById('questionText');
+  questionTextEl.textContent = q.question;
+  // F-43 refinement (#20): Arabe questions are now fully Arabic text — display them right-to-left.
+  questionTextEl.dir = isArabeQuestion(q) ? 'rtl' : 'ltr';
+  questionTextEl.lang = isArabeQuestion(q) ? 'ar' : 'fr';
 
   // Surprise mode: tag each question with the real theme it was drawn from.
   const originEl = document.getElementById('questionOrigin');
@@ -166,6 +186,8 @@ function renderQuestion() {
   // Choices — image grid if optionImages set, otherwise text buttons
   const choicesEl = document.getElementById('choices');
   choicesEl.innerHTML = '';
+  choicesEl.dir = isArabeQuestion(q) ? 'rtl' : 'ltr';
+  choicesEl.lang = isArabeQuestion(q) ? 'ar' : 'fr';
   if (q.optionImages) {
     choicesEl.classList.add('grid');
     q.optionImages.forEach((src, i) => {
