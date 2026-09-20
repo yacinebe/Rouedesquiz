@@ -39,6 +39,19 @@ export function stopSpeaking() {
   if (isTtsSupported()) window.speechSynthesis.cancel();
 }
 
+// Chromium's speechSynthesis silently stalls/cuts speech off after ~15s
+// unless it's nudged with pause()+resume() — a well-known engine bug, and
+// extra insurance alongside the shorter per-sentence utterances in quiz.js.
+// Harmless no-op on engines without the bug.
+if (isTtsSupported()) {
+  setInterval(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 10000);
+}
+
 function queueUtterance(text, lang) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 0.92;
