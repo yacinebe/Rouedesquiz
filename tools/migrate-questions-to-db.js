@@ -11,11 +11,11 @@
 
      # PowerShell
      $env:SUPABASE_URL="https://pidiymkmondkiaanzyyy.supabase.co"
-     $env:SUPABASE_SERVICE_ROLE_KEY="sb_secret_...."   # or the service_role JWT
+     $env:SUPABASE_SECRET_KEY = Read-Host "Secret key"   # typed, so it stays out of history
      node tools/migrate-questions-to-db.js
 
      # bash
-     SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node tools/migrate-questions-to-db.js
+     SUPABASE_URL=... SUPABASE_SECRET_KEY=... node tools/migrate-questions-to-db.js
 
    No npm install required (uses Node 18+ built-in fetch).
 ═══════════════════════════════════════════════════════════════ */
@@ -32,12 +32,21 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('Missing env. Set SUPABASE_URL and SUPABASE_SECRET_KEY (or the legacy SUPABASE_SERVICE_ROLE_KEY).');
   process.exit(1);
 }
-// A key with spaces, arrows or accents is almost always pasted placeholder text,
-// and would otherwise fail deep inside fetch with an unreadable ByteString error.
-if (/[^\x21-\x7E]/.test(SERVICE_KEY)) {
-  console.error('That key contains characters a key never has (spaces, arrows, accents…).');
-  console.error('It looks like placeholder text rather than the key itself. Copy it from');
-  console.error('Supabase → Settings → API Keys, and clear any stale variable:');
+// Surrounding whitespace/quotes come along for free when pasting; strip them.
+const KEY = SERVICE_KEY.trim().replace(/^["']|["']$/g, '');
+
+// Anything left outside printable ASCII is pasted prose, not a key — and would
+// otherwise fail deep inside fetch with an unreadable ByteString error.
+const badAt = [...KEY].findIndex(c => c < '\x21' || c > '\x7E');
+if (badAt !== -1) {
+  const c = KEY[badAt];
+  console.error(`The key has an unexpected character at position ${badAt + 1}: ` +
+    `"${c}" (code ${c.codePointAt(0)}).`);
+  console.error(`Length ${KEY.length}, starts with "${KEY.slice(0, 12)}…".`);
+  console.error('A real key is one unbroken run of letters/digits — no spaces, arrows or accents.');
+  console.error('Which variable is in use: ' +
+    (process.env.SUPABASE_SECRET_KEY ? 'SUPABASE_SECRET_KEY' : 'SUPABASE_SERVICE_ROLE_KEY'));
+  console.error('Clear the other one if it is stale:');
   console.error('  Remove-Item Env:SUPABASE_SERVICE_ROLE_KEY -ErrorAction SilentlyContinue');
   process.exit(1);
 }
@@ -83,8 +92,8 @@ if (bad.length) {
 // ── Upsert in chunks ──
 const ENDPOINT = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/questions?on_conflict=legacy_id`;
 const HEADERS = {
-  'apikey': SERVICE_KEY,
-  'Authorization': `Bearer ${SERVICE_KEY}`,
+  'apikey': KEY,
+  'Authorization': `Bearer ${KEY}`,
   'Content-Type': 'application/json',
   'Prefer': 'resolution=merge-duplicates,return=minimal'
 };
