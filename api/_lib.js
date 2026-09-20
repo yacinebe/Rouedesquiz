@@ -119,4 +119,42 @@ async function writeStory(which, id, fields, message) {
   return next;
 }
 
-module.exports = { REPO, FILES, guard, body, gh, repoPath, readFile, parseRows, writeStory, titleOf };
+// Add a brand-new story to the right theme section, with the next free ID.
+// New rows go at the top of their section, where they are easy to find.
+async function createStory({ theme, title, description, size, priority, depends }) {
+  const which = theme === 'Non-functional' ? 'technical' : 'functional';
+  const prefix = which === 'technical' ? 'T' : 'F';
+  const { file, sha, text } = await readFile(which);
+
+  // Next ID must clear both files: F-41 and T-41 can't collide with themselves.
+  const other = await readFile(which === 'technical' ? 'functional' : 'technical');
+  const used = [...text.matchAll(/^\|\s*[FT]-(\d+)/gm), ...other.text.matchAll(/^\|\s*[FT]-(\d+)/gm)]
+    .map(m => Number(m[1]));
+  const id = `${prefix}-${String(Math.max(0, ...used) + 1).padStart(2, '0')}`;
+
+  const lines = text.split('\n');
+  // Find the table under this theme's heading (technical file has one table).
+  let start = which === 'technical' ? 0 : lines.findIndex(l =>
+    /^##\s/.test(l) && l.replace(/^##\s+(?:\d+\.\s*)?/, '').trim() === theme);
+  if (start === -1) throw new Error(`No section for theme "${theme}" in ${file}`);
+  const sep = lines.findIndex((l, i) => i > start && /^\|[-: |]+\|$/.test(l));
+  if (sep === -1) throw new Error(`No table found under "${theme}"`);
+
+  const item = `**${title.trim()}**${description && description.trim() ? ` — ${description.trim()}` : ''}`;
+  const row = { id, item, size: size || 'M', priority: priority || 'Med',
+                depends: (depends || '').trim() || '—', status: 'Todo' };
+  lines.splice(sep + 1, 0, rowLine(row));
+
+  await gh(repoPath(`/contents/${file}`), {
+    method: 'PUT',
+    body: JSON.stringify({
+      message: `Backlog: add ${id} — ${title.trim()}`,
+      content: Buffer.from(lines.join('\n'), 'utf8').toString('base64'),
+      sha,
+      branch: 'main',
+    }),
+  });
+  return { ...row, backlog: which, theme, title: titleOf(item) };
+}
+
+module.exports = { REPO, FILES, guard, body, gh, repoPath, readFile, parseRows, writeStory, createStory, titleOf };

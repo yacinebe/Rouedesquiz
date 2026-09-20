@@ -76,6 +76,7 @@
   .draft { display:grid; gap:10px; border:1px dashed var(--border-strong); border-radius:10px;
            padding:11px; background:var(--surface-2); }
   .draft .tall { min-height:190px; font-family:var(--mono); font-size:.82rem; background:var(--surface); }
+  .newbox { margin-bottom:14px; border-color:var(--accent); }
   .gate { max-width:360px; margin:14vh auto; display:grid; gap:10px; }
   [hidden] { display:none !important; }
 </style>
@@ -94,8 +95,35 @@
   <header>
     <h1>QuizRoulette backlog</h1>
     <span class="muted" id="stamp"></span>
+    <button class="primary" id="newStory">+ New story</button>
     <button class="ghost" id="refresh">↻</button>
   </header>
+
+  <div class="card newbox" id="newBox" hidden>
+    <div class="body" style="border-top:none;padding-top:14px">
+      <label>Theme
+        <select id="nTheme">
+          <option>Graphics &amp; Sound</option>
+          <option>Game play</option>
+          <option>Curriculum</option>
+          <option>Non-functional</option>
+        </select></label>
+      <label>Title (short — becomes the bold name)
+        <input id="nTitle" placeholder="e.g. Bigger buttons on the wheel"></label>
+      <label>Description — what &amp; why, in your own words
+        <textarea id="nDesc" placeholder="What should change, and why it matters…"></textarea></label>
+      <div class="grid">
+        <label>Size <select id="nSize"><option>S</option><option selected>M</option><option>L</option><option>XL</option></select></label>
+        <label>Priority <select id="nPrio"><option>High</option><option selected>Med</option><option>Low</option></select></label>
+        <label>Depends on <input id="nDeps" placeholder="F-10, T-05"></label>
+      </div>
+      <div class="row">
+        <button class="primary" id="nCreate">Add to backlog</button>
+        <button class="ghost" id="nCancel">Cancel</button>
+        <span class="note" id="nOut"></span>
+      </div>
+    </div>
+  </div>
 
   <p class="err" id="warn"></p>
 
@@ -516,6 +544,36 @@ $('#list').addEventListener('input', e => {
   if (!f || !card) return;
   draftOf(card.dataset.id)[f] = e.target.value;
   saveDrafts();
+});
+
+// ── new story ─────────────────────────────────────────────────────────
+// Writes a new row into the chosen theme's table on main, with the next free ID.
+const newBox = $('#newBox');
+$('#newStory').addEventListener('click', () => {
+  newBox.hidden = !newBox.hidden;
+  if (!newBox.hidden) $('#nTitle').focus();
+});
+$('#nCancel').addEventListener('click', () => { newBox.hidden = true; });
+$('#nCreate').addEventListener('click', async () => {
+  const btn = $('#nCreate'), out = $('#nOut');
+  const title = $('#nTitle').value.trim();
+  if (!title) { out.textContent = 'A title is needed.'; return; }
+  btn.disabled = true; out.textContent = 'Adding…';
+  try {
+    const r = await api('/api/backlog', { method: 'POST', body: JSON.stringify({
+      create: true, theme: $('#nTheme').value, title, description: $('#nDesc').value,
+      size: $('#nSize').value, priority: $('#nPrio').value, depends: $('#nDeps').value }) });
+    out.textContent = `${r.story.id} added ✓`;
+    ['#nTitle', '#nDesc', '#nDeps'].forEach(x => { $(x).value = ''; });
+    open.add(r.story.id);                 // expand it so the buttons are right there
+    await load();
+    newBox.hidden = true;
+    document.querySelector(`.card[data-id="${r.story.id}"]`)?.scrollIntoView({ block: 'center' });
+  } catch (e) {
+    out.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 // Keep the pipeline fresh while a run is in flight — but never redraw while
