@@ -117,6 +117,24 @@ function stripEmojiForSpeech(text) {
   return text.replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
 }
 
+// F-43 follow-up (#24): a bare Arabic consonant read on its own (e.g. one of
+// the alphabet-quiz answer letters) has no vowel to say, so speech engines
+// either read out its *name* or garble it — noticeably "weird" to a 5-7yo.
+// Appending a fatha turns it into a spoken consonant+vowel syllable ("ba",
+// "ta"...), the trick Arabic phonics apps use to teach letter sounds. Alif
+// is skipped: it's a vowel letter already, pronounceable on its own. This
+// only affects what's *spoken* — the displayed letter is never touched, on
+// purpose, so a single-letter answer still shows as the plain letter.
+const FATHA = '\u064E';
+const ARABIC_CONSONANTS = 'بتثجحخدذرزسشصضطظعغفقكلمنهوي';
+const BOUNDARY = '\\s«»"\'.,؟!:';
+const soloArabicLetterRe = new RegExp(
+  `(^|[${BOUNDARY}])([${ARABIC_CONSONANTS}])(?=$|[${BOUNDARY}])`, 'gu'
+);
+function vocalizeSoloLettersForSpeech(text) {
+  return text.replace(soloArabicLetterRe, (m, before, letter) => `${before}${letter}${FATHA}`);
+}
+
 function speechPartsForQuestion(q) {
   if (!q) return [];
   if (isArabeQuestion(q)) {
@@ -127,9 +145,10 @@ function speechPartsForQuestion(q) {
     // question and each option a clean pause between them.
     // F-43 refinement (#22): no letter label at all — just speak the option
     // text itself, simpler for a 5-7yo to follow than "alif: <option>".
-    const parts = [{ text: stripEmojiForSpeech(q.question), lang: 'ar' }];
+    const prep = (t) => vocalizeSoloLettersForSpeech(stripEmojiForSpeech(t));
+    const parts = [{ text: prep(q.question), lang: 'ar' }];
     q.options.forEach((o) => {
-      parts.push({ text: `${stripEmojiForSpeech(o)}.`, lang: 'ar' });
+      parts.push({ text: `${prep(o)}.`, lang: 'ar' });
     });
     return parts;
   }
