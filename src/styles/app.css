@@ -153,7 +153,10 @@
   .lb-stats b { font-family: 'Fredoka One', cursive; opacity: 1; }
 
   /* ── WELCOME / AUTH SCREENS ── */
-  #welcomeScreen { gap: 20px; padding: 24px; text-align: center; }
+  #welcomeScreen {
+    gap: 20px; padding: 24px; text-align: center;
+    background: linear-gradient(160deg, #2b1055 0%, #7a2e5e 35%, #c2503a 70%, #b8502f 100%);
+  }
   .welcome-wheel { width: min(180px, 44vw); height: min(180px, 44vw); filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
   .welcome-title { font-size: clamp(1.05rem, 4.2vw, 1.35rem); max-width: min(320px, 82vw); line-height: 1.3; overflow-wrap: break-word; }
   .welcome-actions { display: flex; flex-direction: column; gap: 12px; width: min(360px, 88vw); }
