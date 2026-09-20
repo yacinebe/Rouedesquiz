@@ -5,6 +5,7 @@ import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
 import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speakParts, stopSpeaking } from './tts.js';
+import { isSttSupported, listenOnce, stopListening } from './speech.js';
 
 // Surprise draws from every other theme, in equal shares — each question
 // keeps a tag back to its real theme so it can still be shown/answered correctly.
@@ -157,8 +158,98 @@ function speechPartsForQuestion(q) {
   return [{ text: `${q.question} ${opts}`, lang: 'fr' }];
 }
 
+// ── Voice answering (F-13) ──────────────────────────────────────────────
+// Neither T-09 (open-answer grading) nor T-10 (cloud STT) has shipped, so
+// this stays deliberately simple: the browser's own SpeechRecognition
+// (src/speech.js) turns speech into text, then we just match that text
+// against the 4 already-known MCQ options — no fuzzy/LLM grading needed,
+// since the "answer" is always one of a short known list, never free text.
+function normalizeForVoiceMatch(text) {
+  return text
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // strip accents (é→e…)
+    // F-43 vocalized the Arabic option text with tashkeel (e.g. أَرْنَب) for
+    // read-aloud/legibility — a spoken answer won't come back with those
+    // marks, so drop them here too or every Arabe option would fail to match.
+    .replace(/[ً-ْٰ]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const VOICE_LETTER_WORDS = ['a', 'b', 'c', 'd'];
+// Said instead of/alongside a letter — "la deuxième", "numéro 3"…
+const VOICE_POSITION_WORDS = [
+  ['un', 'une', 'premier', 'premiere', '1'],
+  ['deux', 'deuxieme', 'seconde', '2'],
+  ['trois', 'troisieme', '3'],
+  ['quatre', 'quatrieme', '4'],
+];
+
+// Returns the matching option index, or -1 if nothing said matches closely
+// enough. Substring match against the option text itself is tried first
+// (works for any language/content, incl. Arabic); letter/position words are
+// a fallback, mainly useful for image-option grids with no visible text.
+function matchVoiceAnswer(transcript, options) {
+  const norm = normalizeForVoiceMatch(transcript);
+  if (!norm) return -1;
+  const normOptions = options.map(normalizeForVoiceMatch);
+
+  const textMatch = normOptions.findIndex(o => o && (norm === o || norm.includes(o) || o.includes(norm)));
+  if (textMatch !== -1) return textMatch;
+
+  const words = norm.split(' ');
+  for (const w of words) {
+    const letterIdx = VOICE_LETTER_WORDS.indexOf(w);
+    if (letterIdx !== -1 && letterIdx < options.length) return letterIdx;
+    const posIdx = VOICE_POSITION_WORDS.findIndex(group => group.includes(w));
+    if (posIdx !== -1 && posIdx < options.length) return posIdx;
+  }
+  return -1;
+}
+
+function setVoiceHint(msg) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show voice-hint';
+  fb.textContent = msg;
+}
+
+async function onVoiceBtnClick() {
+  if (answered || !currentQ) return;
+  const btn = document.getElementById('voiceBtn');
+  const q = currentQ;
+  btn.classList.add('listening');
+  btn.disabled = true;
+  setVoiceHint('🎤 Je t\'écoute…');
+  const transcript = await listenOnce(isArabeQuestion(q) ? 'ar' : 'fr');
+  btn.classList.remove('listening');
+  btn.disabled = false;
+  if (answered || currentQ !== q) return; // moved on while we were listening
+
+  if (!transcript) {
+    setVoiceHint('Je n\'ai pas entendu, réessaie 🎤');
+    return;
+  }
+  const idx = matchVoiceAnswer(transcript, q.options);
+  if (idx === -1) {
+    setVoiceHint(`J'ai entendu « ${transcript} », réessaie ou touche une réponse`);
+    return;
+  }
+  selectAnswer(idx);
+}
+
+function initVoiceControls() {
+  const btn = document.getElementById('voiceBtn');
+  if (!btn) return;
+  if (!isSttSupported()) { btn.style.display = 'none'; return; }
+  btn.addEventListener('click', onVoiceBtnClick);
+}
+
 function renderQuestion() {
   answered = false;
+  stopListening();
+  const voiceBtn = document.getElementById('voiceBtn');
+  if (voiceBtn) { voiceBtn.classList.remove('listening'); voiceBtn.disabled = false; }
   const q = currentQ;
   if (!q) { runComplete(); return; }
   const letters = ['A', 'B', 'C', 'D'];
@@ -251,6 +342,9 @@ function renderQuestion() {
 function selectAnswer(chosen) {
   if (answered) return;
   answered = true;
+  stopListening();
+  const voiceBtn = document.getElementById('voiceBtn');
+  if (voiceBtn) { voiceBtn.classList.remove('listening'); voiceBtn.disabled = true; }
   const q = currentQ;
   const correctIdx = q.options.indexOf(q.answer);
   const btns = document.querySelectorAll('.choice-btn');
@@ -322,6 +416,7 @@ function milestoneEmoji(s, total) {
 
 function showMilestone() {
   stopSpeaking();
+  stopListening();
   document.getElementById('msContinue').style.display = '';
   document.getElementById('msEmoji').textContent = milestoneEmoji(runScore, runCount);
   document.getElementById('msTitle').textContent = `Palier ${runCount / MILESTONE} atteint !`;
@@ -343,6 +438,7 @@ function continueRun() {
 // A finite run ("revise mistakes") has no more questions.
 function runComplete() {
   stopSpeaking();
+  stopListening();
   finalizeRun();
   document.getElementById('msContinue').style.display = 'none';
   document.getElementById('msEmoji').textContent = '🎯';
@@ -366,6 +462,7 @@ function finalizeRun() {
 
 export function goToWheel() {
   stopSpeaking();
+  stopListening();
   finalizeRun();
   showScreen('wheelScreen');
 }
@@ -519,6 +616,7 @@ function initTtsControls() {
 
 export function initQuiz() {
   initTtsControls();
+  initVoiceControls();
   document.getElementById('nextBtn').addEventListener('click', nextQuestion);
   document.getElementById('msContinue').addEventListener('click', continueRun);
   // every "back to wheel" control (quiz back, progress back, milestone return)

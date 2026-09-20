@@ -354,6 +354,18 @@
   #ttsReplayBtn { margin-left: auto; }
   .tts-btn.tts-toggle.off { opacity: 0.4; }
 
+  /* Voice answering (F-13) — 🎤 turns red and pulses while listening */
+  .tts-btn.listening {
+    background: #ff4d4d;
+    border-color: #ff4d4d;
+    animation: voicePulse 1s ease-in-out infinite;
+  }
+  @keyframes voicePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .feedback.voice-hint { background: rgba(255,255,255,0.1); color: #fff; }
+
   .back-btn {
     background: var(--card);
     border: 2px solid rgba(255,255,255,0.15);
@@ -774,7 +786,8 @@
     .unicorn-svg .mv-spark,
     .mv-spark-float,
     #quizScreen.merveilleux-mode .mv-companion,
-    #quizScreen.merveilleux-mode .mv-companion.bounce {
+    #quizScreen.merveilleux-mode .mv-companion.bounce,
+    .tts-btn.listening {
       animation: none !important;
     }
   }
