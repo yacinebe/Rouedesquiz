@@ -127,6 +127,17 @@ const $ = s => document.querySelector(s);
 let KEY = localStorage.getItem('backlogKey') || '';
 let stories = [], pipeline = {}, open = new Set();
 
+// Text you have typed but not sent yet (brief, issue draft, refinement), kept
+// per story so the 30s refresh — or closing the tab — never eats it.
+const drafts = JSON.parse(localStorage.getItem('backlogDrafts') || '{}');
+const draftOf = id => (drafts[id] = drafts[id] || {});
+const saveDrafts = () => { try { localStorage.setItem('backlogDrafts', JSON.stringify(drafts)); } catch {} };
+const clearDraft = (id, ...fields) => {
+  fields.forEach(f => delete draftOf(id)[f]);
+  if (!Object.keys(draftOf(id)).length) delete drafts[id];
+  saveDrafts();
+};
+
 // Demo mode (?demo=1): read the backlog files straight off the server, no API,
 // no GitHub, no password — for looking at the layout locally. Buttons are inert.
 const DEMO = new URLSearchParams(location.search).has('demo');
@@ -321,6 +332,7 @@ function render() {
     + rows.filter(r => r.theme === g).map(s => {
     const isOpen = open.has(s.id);
     const issueNo = latestIssue(s.id);
+    const d = drafts[s.id] || {};
     return `<div class="card" data-id="${s.id}" data-backlog="${s.backlog}">
       <div class="head" data-toggle="${s.id}">
         <span class="id">${s.id}</span>
@@ -348,11 +360,11 @@ function render() {
         <div class="pipe-wrap">${pipeHTML(s.id)}</div>
 
         ${issueNo ? '' : `<label>Brief for Claude (decisions already made…)
-          <textarea data-f="brief" placeholder="Decisions: …"></textarea></label>
-        <div class="draft" data-draft hidden>
-          <label>Issue title <input data-f="dTitle"></label>
+          <textarea data-f="brief" placeholder="Decisions: …">${esc(d.brief || '')}</textarea></label>
+        <div class="draft" data-draft${d.dBody ? '' : ' hidden'}>
+          <label>Issue title <input data-f="dTitle" value="${esc(d.dTitle || '')}"></label>
           <label>Issue body — edit before posting; Claude only starts if it contains @claude
-            <textarea data-f="dBody" class="tall"></textarea></label>
+            <textarea data-f="dBody" class="tall">${esc(d.dBody || '')}</textarea></label>
           <p class="note">Nothing has been sent to GitHub yet.</p>
         </div>`}
         <div class="row">
@@ -365,7 +377,7 @@ function render() {
         </div>
 
         <label>Refinement after testing (sent to Claude)
-          <textarea data-f="refine" placeholder="What to fix or adjust after testing the preview…"></textarea></label>
+          <textarea data-f="refine" placeholder="What to fix or adjust after testing the preview…">${esc(d.refine || '')}</textarea></label>
         <div class="row">
           <button data-act="refine">Send refinement</button>
           <span class="note" data-out="refine"></span>
@@ -431,6 +443,8 @@ $('#list').addEventListener('click', async e => {
         { kind: 'preview', trigger: true, ...storyPayload(story, field) }) });
       field('dTitle').value = r.draft.title;
       field('dBody').value = r.draft.body;
+      Object.assign(draftOf(id), { dTitle: r.draft.title, dBody: r.draft.body });
+      saveDrafts();
       box.hidden = false;
       out('act').textContent = 'Draft below — edit it, then create.';
     }
@@ -443,6 +457,7 @@ $('#list').addEventListener('click', async e => {
         kind: 'issue', trigger: act === 'issue-run', ...storyPayload(story, field),
         titleOverride: edited ? field('dTitle').value : null,
         bodyOverride: edited ? field('dBody').value : null }) });
+      clearDraft(id, 'brief', 'dTitle', 'dBody');
       out('act').innerHTML = `Issue <a href="${r.issue.url}" target="_blank">#${r.issue.number}</a> created${act === 'issue-run' ? ' — Claude is starting' : ''}`;
       setTimeout(() => load(), 4000);
     }
@@ -481,6 +496,7 @@ $('#list').addEventListener('click', async e => {
       const where = { pr: 'to PR', issue: 'to issue', 'new-issue': 'as new issue' }[r.target];
       out('refine').innerHTML = `Sent ${where} <a href="${r.url}" target="_blank">#${r.number}</a>`;
       field('refine').value = '';
+      clearDraft(id, 'refine');
       setTimeout(() => load(), 5000);
     }
   } catch (err) {
@@ -493,10 +509,23 @@ $('#list').addEventListener('click', async e => {
   }
 });
 
-// Keep the pipeline fresh while a run is in flight.
+// Remember unsent text as it is typed.
+$('#list').addEventListener('input', e => {
+  const f = e.target.dataset && e.target.dataset.f;
+  const card = e.target.closest('.card');
+  if (!f || !card) return;
+  draftOf(card.dataset.id)[f] = e.target.value;
+  saveDrafts();
+});
+
+// Keep the pipeline fresh while a run is in flight — but never redraw while
+// you are typing in a card, and never lose what is already typed.
 setInterval(() => {
   if (DEMO) return;
-  if (!$('#app').hidden && document.visibilityState === 'visible') load().catch(() => {});
+  if ($('#app').hidden || document.visibilityState !== 'visible') return;
+  if (document.activeElement && document.activeElement.closest &&
+      document.activeElement.closest('#list')) return;
+  load().catch(() => {});
 }, 30000);
 
 start();
