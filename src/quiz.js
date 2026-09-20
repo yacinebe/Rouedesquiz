@@ -125,10 +125,12 @@ function speechPartsForQuestion(q) {
     // stall/cut off on long utterances, which sounded "choppy"/garbled —
     // short back-to-back utterances play far more reliably and give the
     // question and each option a clean pause between them.
-    const arLetters = ['أ', 'ب', 'ج', 'د'];
+    // F-43 refinement (#22): just the letter, no "al ijaba" ("the answer is")
+    // preamble — and the labels are alif/ba/ta/jim, not alif/ba/jim/dal.
+    const arLetters = ['أ', 'ب', 'ت', 'ج'];
     const parts = [{ text: stripEmojiForSpeech(q.question), lang: 'ar' }];
     q.options.forEach((o, i) => {
-      parts.push({ text: `الإجابة ${arLetters[i]}: ${stripEmojiForSpeech(o)}.`, lang: 'ar' });
+      parts.push({ text: `${arLetters[i]}: ${stripEmojiForSpeech(o)}.`, lang: 'ar' });
     });
     return parts;
   }
