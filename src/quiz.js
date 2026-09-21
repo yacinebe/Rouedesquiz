@@ -5,6 +5,7 @@ import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
 import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speakParts, stopSpeaking } from './tts.js';
+import { playSound } from './audio.js';
 
 // Surprise draws from every other theme, in equal shares — each question
 // keeps a tag back to its real theme so it can still be shown/answered correctly.
@@ -264,6 +265,7 @@ function selectAnswer(chosen) {
   });
 
   const isCorrect = chosen === correctIdx;
+  playSound(isCorrect ? 'correct' : 'wrong');
   if (isCorrect) runScore++;
   runCount++;
   blockResults.push(isCorrect);
@@ -324,6 +326,7 @@ function milestoneEmoji(s, total) {
 
 function showMilestone() {
   stopSpeaking();
+  playSound('win');
   document.getElementById('msContinue').style.display = '';
   document.getElementById('msEmoji').textContent = milestoneEmoji(runScore, runCount);
   document.getElementById('msTitle').textContent = `Palier ${runCount / MILESTONE} atteint !`;
@@ -345,6 +348,7 @@ function continueRun() {
 // A finite run ("revise mistakes") has no more questions.
 function runComplete() {
   stopSpeaking();
+  playSound('win');
   finalizeRun();
   document.getElementById('msContinue').style.display = 'none';
   document.getElementById('msEmoji').textContent = '🎯';
@@ -392,6 +396,7 @@ function showMerveilleuxEntry() {
 
 function unlockMerveilleux() {
   showMerveilleuxEntry();
+  playSound('cheer');
   document.getElementById('mvPopup').style.display = 'flex';
   launchConfetti(MERVEILLEUX_SEG.color);
 }

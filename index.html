@@ -229,14 +229,18 @@
   <div class="leaderboard-body" id="leaderboardBody"></div>
 </div>
 
-<!-- Current player badge — shown top-right during play; click to switch -->
-<div id="currentPlayer" class="current-player" style="display:none">
-  <span class="cp-avatar"></span>
-  <span class="cp-text">
-    <span class="cp-name"></span>
-    <span class="cp-score"></span>
-  </span>
-  <span class="cp-switch">changer</span>
+<!-- Fixed top-right controls shown during play: mute toggle (F-29, persisted)
+     + current player badge (click badge to switch profile) -->
+<div id="playControls" class="play-controls">
+  <button id="muteBtn" class="mute-btn" type="button" aria-label="Activer ou désactiver les sons">🔊</button>
+  <div id="currentPlayer" class="current-player" style="display:none">
+    <span class="cp-avatar"></span>
+    <span class="cp-text">
+      <span class="cp-name"></span>
+      <span class="cp-score"></span>
+    </span>
+    <span class="cp-switch">changer</span>
+  </div>
 </div>
 
 <!-- Mode Merveilleux — unlock celebration popup (F-31) -->

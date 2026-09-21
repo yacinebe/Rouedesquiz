@@ -3,11 +3,15 @@
 export function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  // Current-player badge: shown while playing (wheel / quiz / milestone),
-  // once a player (or guest) has been chosen so the name is populated.
+  // Play controls (top-right): the mute toggle (F-29) + current-player badge,
+  // shown while playing (wheel / quiz / milestone) — same screens SFX plays on.
+  const onPlay = id === 'wheelScreen' || id === 'quizScreen' || id === 'milestoneScreen';
+  const controls = document.getElementById('playControls');
+  if (controls) controls.classList.toggle('show', onPlay);
+  // The player badge itself only appears once a player (or guest) has been
+  // chosen so the name is populated.
   const cp = document.getElementById('currentPlayer');
   if (cp) {
-    const onPlay = id === 'wheelScreen' || id === 'quizScreen' || id === 'milestoneScreen';
     const named = cp.querySelector('.cp-name').textContent;
     cp.style.display = (onPlay && named) ? 'flex' : 'none';
   }
