@@ -15,6 +15,7 @@ The three player-facing themes — **Graphics & Sound**, **Game play**, **Curric
 
 | ID | Item — what & why | Size | Priority | Depends on | Status |
 |----|-------------------|:----:|:--------:|-----------|:------:|
+| T-46 | **There is a time-out when non playing for a few seconds - also when alreadt logged in the log in screen is fully skipped** | S | Med | — | Todo |
 | T-45 | **The wheel on the main screen is too slow to load** — Find a way to load it faster with caching or any other approach | S | Med | — | Todo |
 | T-01 | **Delete / archive the twin repo** — `yacinebe/rouedesquizz` (double-z) is a stale duplicate that made Vercel deploy old code. Remove it. 2-min cleanup. | S | High | — | Todo |
 | T-02 | **Centralize the image base URL** — `questions.js` hard-codes 910 absolute CDN URLs; store the base once so switching hosts / local fallback is one line. | M | High | — | Todo |
