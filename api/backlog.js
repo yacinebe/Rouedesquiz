@@ -1,6 +1,6 @@
 // GET  /api/backlog        → every story from both backlog files
 // POST /api/backlog        → save one story's fields (commits to main)
-const { guard, body, readFile, parseRows, writeStory, createStory } = require('./_lib');
+const { guard, body, readFile, parseRows, writeStory, createStory, deleteStory } = require('./_lib');
 
 module.exports = async (req, res) => {
   if (!guard(req, res)) return;
@@ -13,6 +13,12 @@ module.exports = async (req, res) => {
         if (!p.theme || !p.title) return res.status(400).json({ error: 'theme and title are required' });
         const story = await createStory(p);
         return res.json({ ok: true, created: true, story });
+      }
+
+      if (p.remove) {
+        if (!p.backlog || !p.id) return res.status(400).json({ error: 'backlog and id are required' });
+        const gone = await deleteStory(p.backlog, p.id);
+        return res.json({ ok: true, removed: gone.id });
       }
 
       const { backlog, id, item, size, priority, depends, status } = p;

@@ -157,4 +157,24 @@ async function createStory({ theme, title, description, size, priority, depends 
   return { ...row, backlog: which, theme, title: titleOf(item) };
 }
 
-module.exports = { REPO, FILES, guard, body, gh, repoPath, readFile, parseRows, writeStory, createStory, titleOf };
+// Remove a story's row entirely. Used for test/obsolete stories; the git
+// history keeps the text if it is ever needed again.
+async function deleteStory(which, id) {
+  const { file, sha, text } = await readFile(which);
+  const lines = text.split('\n');
+  const idx = lines.findIndex(l => (l.match(ROW) || [])[1] === id);
+  if (idx === -1) throw new Error(`Story ${id} not found in ${file}`);
+  const [removed] = lines.splice(idx, 1);
+  await gh(repoPath(`/contents/${file}`), {
+    method: 'PUT',
+    body: JSON.stringify({
+      message: `Backlog: remove ${id}`,
+      content: Buffer.from(lines.join('\n'), 'utf8').toString('base64'),
+      sha,
+      branch: 'main',
+    }),
+  });
+  return { id, removed };
+}
+
+module.exports = { REPO, FILES, guard, body, gh, repoPath, readFile, parseRows, writeStory, createStory, deleteStory, titleOf };

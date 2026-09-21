@@ -59,6 +59,26 @@ jobs:
           fi
           ahead=$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...${branch}" --jq '.ahead_by')
           if [ "$ahead" = "0" ]; then echo "$branch has no new commits; nothing to open."; exit 0; fi
+
+          # Rename to something readable: "F-44: Fix Arabic letter pronunciation"
+          # becomes f-44-fix-arabic-letter-pronunciation. Same commits, new ref —
+          # the claude/issue-N-… branch is deleted once the PR is open.
+          slug=$(printf '%s' "$TITLE" \
+                 | tr '[:upper:]' '[:lower:]' \
+                 | sed -e 's/[^a-z0-9]\+/-/g' -e 's/^-//' -e 's/-$//' \
+                 | cut -c1-60 | sed -e 's/-$//')
+          [ -n "$slug" ] || slug="issue-${ISSUE}"
+          named="$slug"
+          sha=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${branch}" --jq '.object.sha')
+          if gh api "repos/${GITHUB_REPOSITORY}/git/refs" -X POST \
+               -f ref="refs/heads/${named}" -f sha="$sha" >/dev/null 2>&1; then
+            echo "Opened PR from $named (was $branch)"
+            old="$branch"; branch="$named"
+          else
+            echo "Could not create $named (name taken?) — keeping $branch"
+            old=""
+          fi
+
           gh pr create --base main --head "$branch" \
             --title "$TITLE" \
             --body "Automated PR for Claude's work on #${ISSUE}.
@@ -67,3 +87,8 @@ jobs:
           Test it on the Vercel preview linked below, then merge.
 
           Closes #${ISSUE}"
+
+          # Drop the machine-named branch now that the PR lives on the named one.
+          if [ -n "$old" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs/heads/${old}" -X DELETE || true
+          fi
