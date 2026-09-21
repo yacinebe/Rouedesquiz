@@ -27,7 +27,9 @@ let runLogged = false;
 // Not a wheel wedge (kept out of SEGMENTS on purpose — it's entered via a
 // button next to the wheel instead, so the 7-slice wheel geometry and the
 // Surprise mix stay untouched). Streak + unlock are session-only (in memory,
-// lost on reload/sign-out) — no database change.
+// lost on reload/sign-out) — no database change. The unlock is spent once
+// played (F-37): leaving a Merveilleux run relocks it, so it stays a reward
+// rather than a permanent shortcut — see relockMerveilleux()/goToWheel().
 const STREAK_TARGET = 10;
 const MERVEILLEUX_SEG = { label: 'Merveilleux', emoji: '🦄', color: '#FF9BEE', cls: 'merveilleux' };
 let sessionStreak = 0;
@@ -367,7 +369,19 @@ function finalizeRun() {
 export function goToWheel() {
   stopSpeaking();
   finalizeRun();
+  // F-37: the unlock is a one-play reward, not a permanent shortcut — leaving
+  // a Merveilleux run (any "back to wheel" control) locks it again, so she
+  // has to earn a fresh 10-streak. The secret cheat is untouched: it forces
+  // merveilleuxUnlocked back to true on demand, regardless of this reset.
+  if (runTheme === 'merveilleux') relockMerveilleux();
   showScreen('wheelScreen');
+}
+
+function relockMerveilleux() {
+  merveilleuxUnlocked = false;
+  sessionStreak = 0;
+  const btn = document.getElementById('mvEntryBtn');
+  if (btn) btn.style.display = 'none';
 }
 
 // ── Mode Merveilleux unlock (F-31) ──────────────────────────────
