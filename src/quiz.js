@@ -5,6 +5,7 @@ import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
 import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speakParts, stopSpeaking } from './tts.js';
+import { generateChessQuestion, renderChessBoardHTML } from './chess.js';
 
 // Surprise draws from every other theme, in equal shares — each question
 // keeps a tag back to its real theme so it can still be shown/answered correctly.
@@ -35,8 +36,25 @@ const MERVEILLEUX_SEG = { label: 'Merveilleux', emoji: '🦄', color: '#FF9BEE',
 let sessionStreak = 0;
 let merveilleuxUnlocked = false;
 
+// ── Mode Échecs (F-48, phase 1) ─────────────────────────────────
+// Also not a wheel wedge, for the same reason as Merveilleux: the wheel
+// geometry (ARC, wedge count) is computed from SEGMENTS.length in
+// wheel.js, so an 8th wedge would shrink every existing slice instead of
+// just adding one. Entered via a persistent button next to the wheel
+// instead (always visible — unlike Merveilleux this isn't a reward).
+// Kept out of SEGMENTS, so it's automatically excluded from the Surprise
+// mix too (SURPRISE_SOURCES filters SEGMENTS) — a chess question has no
+// "origin theme" meaning there. Questions are generated on the fly (see
+// chess.js), never drawn from a fixed pool — see drawNext().
+const ECHECS_SEG = { label: 'Échecs', emoji: '♞', color: '#C48A5A', cls: 'echecs' };
+
 export async function startQuiz(seg) {
   if (!seg) return;
+  if (seg.cls === 'echecs') {
+    beginRun({ theme: 'echecs', label: seg.label, color: seg.color,
+               emoji: seg.emoji, cls: 'echecs', pool: [], endless: true });
+    return;
+  }
   const pool = seg.cls === 'surprise' ? await buildSurprisePool() : await fetchThemePool(seg.cls);
   if (!pool || pool.length === 0) {
     document.getElementById('resultArea').innerHTML =
@@ -87,6 +105,8 @@ export function beginRun({ theme, label, color, emoji, cls, pool, endless: isEnd
 }
 
 function drawNext() {
+  // Echecs never draws from a pool — every question is freshly generated.
+  if (runTheme === 'echecs') return generateChessQuestion();
   if (!queue.length) {
     if (endless) queue = shuffle(poolCache.slice());
     else return null;                 // finite run exhausted
@@ -183,9 +203,14 @@ function renderQuestion() {
     originEl.style.display = 'none';
   }
 
-  // Question image (optional — illustration or image-as-question)
+  // Question image (illustration / image-as-question) or, for Échecs, the
+  // read-only chess board illustrating the single piece being asked about.
   const imgWrap = document.getElementById('questionImageWrap');
-  if (q.image) {
+  imgWrap.classList.toggle('chess-board-wrap', !!q.board);
+  if (q.board) {
+    imgWrap.innerHTML = renderChessBoardHTML(q.board.from, q.board.symbol);
+    imgWrap.style.display = '';
+  } else if (q.image) {
     imgWrap.innerHTML = `<img src="${q.image}" alt="" onerror="this.parentElement.style.display='none'">`;
     imgWrap.style.display = '';
   } else {
@@ -538,6 +563,8 @@ export function initQuiz() {
   document.getElementById('msContinue').addEventListener('click', continueRun);
   // every "back to wheel" control (quiz back, progress back, milestone return)
   document.querySelectorAll('[data-action="wheel"]').forEach(b => b.addEventListener('click', goToWheel));
+
+  document.getElementById('chessEntryBtn').addEventListener('click', () => startQuiz(ECHECS_SEG));
 
   document.getElementById('mvEntryBtn').addEventListener('click', playMerveilleuxNow);
   document.getElementById('mvPlayNow').addEventListener('click', playMerveilleuxNow);
