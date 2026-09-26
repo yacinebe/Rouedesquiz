@@ -127,10 +127,15 @@ export function generateChessQuestion() {
   };
 }
 
-// Read-only 8×8 board with file/rank labels and the single piece on its
-// square. Not interactive on purpose (phase 1): the 4 option buttons carry
-// the actual answers, the board is just the illustration.
-export function renderChessBoardHTML(fromSquare, symbol) {
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+
+// Read-only 8×8 board with file/rank labels, the single piece on its square,
+// and — so a 5-7yo can match each lettered answer button to a spot on the
+// board without reading square names — a lettered badge on each of the 4
+// option squares (`options`, in the same A/B/C/D order as the answer
+// buttons). Still not clickable on purpose (phase 1): the 4 option buttons
+// below carry the actual answers: this only visualises where they are.
+export function renderChessBoardHTML(fromSquare, symbol, options) {
   let cells = '';
   for (let rank = 8; rank >= 1; rank--) {
     cells += `<div class="chess-rank-label">${rank}</div>`;
@@ -138,7 +143,11 @@ export function renderChessBoardHTML(fromSquare, symbol) {
       const name = FILES[fi] + rank;
       const light = (fi + rank) % 2 === 0;
       const isPiece = name === fromSquare;
-      cells += `<div class="chess-sq ${light ? 'light' : 'dark'}${isPiece ? ' chess-piece-sq' : ''}">${isPiece ? symbol : ''}</div>`;
+      const optIdx = options ? options.indexOf(name) : -1;
+      let content = '';
+      if (isPiece) content = symbol;
+      else if (optIdx >= 0) content = `<span class="chess-option-badge">${OPTION_LETTERS[optIdx]}</span>`;
+      cells += `<div class="chess-sq ${light ? 'light' : 'dark'}${isPiece ? ' chess-piece-sq' : ''}${optIdx >= 0 ? ' chess-option-sq' : ''}">${content}</div>`;
     }
   }
   cells += '<div class="chess-corner"></div>';

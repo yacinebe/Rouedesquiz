@@ -544,6 +544,21 @@
   .chess-sq.light { background: #e8d9c0; }
   .chess-sq.dark  { background: #8a6642; }
   .chess-piece-sq { color: #1a1a2e; text-shadow: 0 1px 3px rgba(255,255,255,.55); }
+  /* Lettered badge on each of the 4 answer squares (A/B/C/D, matching the
+     option buttons below) — bright on purpose so it reads on both light
+     and dark squares. */
+  .chess-option-badge {
+    width: 62%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--geo);
+    color: #1a1a2e;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(0.8rem, 3.8vw, 1.2rem);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  }
 
   /* Image-options grid (2×2) */
   .choices.grid {

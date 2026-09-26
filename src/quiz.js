@@ -208,7 +208,7 @@ function renderQuestion() {
   const imgWrap = document.getElementById('questionImageWrap');
   imgWrap.classList.toggle('chess-board-wrap', !!q.board);
   if (q.board) {
-    imgWrap.innerHTML = renderChessBoardHTML(q.board.from, q.board.symbol);
+    imgWrap.innerHTML = renderChessBoardHTML(q.board.from, q.board.symbol, q.options);
     imgWrap.style.display = '';
   } else if (q.image) {
     imgWrap.innerHTML = `<img src="${q.image}" alt="" onerror="this.parentElement.style.display='none'">`;
