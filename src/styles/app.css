@@ -861,7 +861,21 @@
      The galloping/sweeping motion *is* the feature, so reduced-motion drops
      it to a calmer static sparkle wash instead of trying to fake stillness
      mid-animation (which would just look like a unicorn frozen off-screen). */
+  /* Mascot reactions (F-07) */
+  .mascot { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 4px auto 8px; max-width: 520px; }
+  .mascot-fig { width: 72px; height: 72px; flex-shrink: 0; }
+  .mascot-fig svg { width: 100%; height: 100%; display: block; }
+  .mascot-bubble { background: #fff; color: #2b2140; font-weight: 700; font-size: 1rem; padding: 8px 14px; border-radius: 16px; position: relative; min-height: 1.2em; }
+  .mascot-bubble:empty { display: none; }
+  .mascot-bubble::before { content: ''; position: absolute; left: -8px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right-color: #fff; }
+  .mascot[data-pose="think"] .mascot-fig { animation: mascotBob 2.4s ease-in-out infinite; }
+  .mascot[data-pose="cheer"] .mascot-fig { animation: mascotJump .5s ease-out 3; }
+  .mascot[data-pose="sad"] .mascot-fig { animation: mascotBob 3s ease-in-out infinite; }
+  @keyframes mascotBob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-4px) rotate(3deg); } }
+  @keyframes mascotJump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
   @media (prefers-reduced-motion: reduce) {
+    .mascot-fig { animation: none !important; }
     .mv-entry-btn,
     .unicorn-svg .mv-horn,
     .unicorn-svg .mv-spark,
