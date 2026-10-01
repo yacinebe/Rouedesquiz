@@ -4,6 +4,7 @@ import { showScreen, launchConfetti, shuffle, unicornSVG } from './ui.js';
 import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
+import { initMascot, mascotThink, mascotReact } from './mascot.js';
 import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speakParts, stopSpeaking } from './tts.js';
 
 // Surprise draws from every other theme, in equal shares — each question
@@ -247,6 +248,8 @@ function renderQuestion() {
   card.offsetHeight; // reflow
   card.style.animation = '';
 
+  mascotThink();
+
   if (isTtsSupported() && isTtsEnabled()) speakParts(speechPartsForQuestion(q));
 }
 
@@ -283,6 +286,7 @@ function selectAnswer(chosen) {
     }
   }
 
+  mascotReact(isCorrect);
   if (isCorrect && runTheme === 'merveilleux') pulseMerveilleuxScene();
 
   // Record the attempt (fire-and-forget; no-ops for guests / offline)
@@ -534,6 +538,7 @@ function initTtsControls() {
 
 export function initQuiz() {
   initTtsControls();
+  initMascot();
   document.getElementById('nextBtn').addEventListener('click', nextQuestion);
   document.getElementById('msContinue').addEventListener('click', continueRun);
   // every "back to wheel" control (quiz back, progress back, milestone return)
