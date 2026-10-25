@@ -800,61 +800,81 @@
   }
 
   /* Galloping unicorns — one bigger/faster in front, one smaller/slower
-     behind for a little depth, crossing in opposite directions. */
+     behind for a little depth, crossing in opposite directions.
+     F-35 follow-up: sized up 2x (was 150px/105px) so the mode reads as
+     an impressive, unmistakable centerpiece rather than a background
+     detail — the reason the mode exists at all. */
   .mv-gallop {
     position: absolute;
-    top: 18%; left: 0;
+    top: 10%; left: 0;
     animation: mvGallopRight 11s linear infinite;
   }
   .mv-gallop-2 {
-    top: 72%;
+    top: 58%;
     animation: mvGallopLeft 15s linear infinite;
     animation-delay: -5s;
     opacity: .85;
   }
   @keyframes mvGallopRight {
-    from { transform: translateX(-180px); }
-    to   { transform: translateX(calc(100vw + 180px)); }
+    from { transform: translateX(-340px); }
+    to   { transform: translateX(calc(100vw + 340px)); }
   }
   @keyframes mvGallopLeft {
-    from { transform: translateX(calc(100vw + 180px)) scaleX(-1); }
-    to   { transform: translateX(-180px) scaleX(-1); }
+    from { transform: translateX(calc(100vw + 340px)) scaleX(-1); }
+    to   { transform: translateX(-340px) scaleX(-1); }
   }
   .mv-gallop-icon {
-    width: 150px; height: 150px;
-    filter: drop-shadow(0 10px 18px rgba(192,132,252,.45));
+    width: 300px; height: 300px;
+    filter: drop-shadow(0 18px 30px rgba(192,132,252,.5));
     animation: mvGallopBob 0.6s ease-in-out infinite;
   }
-  .mv-gallop-2 .mv-gallop-icon { width: 105px; height: 105px; }
+  .mv-gallop-2 .mv-gallop-icon { width: 210px; height: 210px; }
   @keyframes mvGallopBob {
     0%, 100% { transform: translateY(0) rotate(-4deg); }
-    50%      { transform: translateY(-16px) rotate(4deg); }
+    50%      { transform: translateY(-26px) rotate(4deg); }
   }
   /* One-shot flourish on a correct Merveilleux answer (see pulseMerveilleuxScene() in quiz.js) */
   #mvScene.leap .mv-gallop-icon {
     animation: mvGallopBob 0.6s ease-in-out infinite, mvLeapFlash .6s ease;
   }
   @keyframes mvLeapFlash {
-    0%, 100% { filter: drop-shadow(0 10px 18px rgba(192,132,252,.45)) brightness(1); }
-    40%      { filter: drop-shadow(0 14px 26px rgba(255,255,255,.9)) brightness(1.6); }
+    0%, 100% { filter: drop-shadow(0 18px 30px rgba(192,132,252,.5)) brightness(1); }
+    40%      { filter: drop-shadow(0 26px 44px rgba(255,255,255,.9)) brightness(1.6); }
   }
 
   /* Trail sparks — sit just behind the unicorn (toward where it came from)
-     and twinkle in sequence to read as a shimmering trail while it moves. */
+     and twinkle in sequence to read as a shimmering trail while it moves.
+     Scaled alongside the 2x unicorn so the trail stays proportional. */
   .mv-trail-spark {
     position: absolute;
     top: 55%;
-    width: 10px; height: 10px;
+    width: 16px; height: 16px;
     border-radius: 50%;
     background: radial-gradient(circle, #fff6c9, transparent 70%);
     animation: mvTrailTwinkle 0.9s ease-in-out infinite;
   }
-  .mv-trail-spark.s1 { left: -22px; animation-delay: 0s; }
-  .mv-trail-spark.s2 { left: -42px; animation-delay: .15s; background: radial-gradient(circle, #ffe6fb, transparent 70%); }
-  .mv-trail-spark.s3 { left: -64px; animation-delay: .3s;  background: radial-gradient(circle, #e0f2ff, transparent 70%); }
+  .mv-trail-spark.s1 { left: -40px; animation-delay: 0s; }
+  .mv-trail-spark.s2 { left: -75px; animation-delay: .15s; background: radial-gradient(circle, #ffe6fb, transparent 70%); }
+  .mv-trail-spark.s3 { left: -110px; animation-delay: .3s;  background: radial-gradient(circle, #e0f2ff, transparent 70%); }
   @keyframes mvTrailTwinkle {
     0%, 100% { opacity: 0; transform: scale(.5); }
     50%      { opacity: .9; transform: scale(1.1); }
+  }
+
+  /* On narrow phones a 300px unicorn is wider than the screen itself —
+     still big and impressive, just dialed back enough to keep the
+     question text legible underneath as it crosses. */
+  @media (max-width: 420px) {
+    .mv-gallop-icon { width: 220px; height: 220px; }
+    .mv-gallop-2 .mv-gallop-icon { width: 155px; height: 155px; }
+    @keyframes mvGallopRight {
+      from { transform: translateX(-260px); }
+      to   { transform: translateX(calc(100vw + 260px)); }
+    }
+    @keyframes mvGallopLeft {
+      from { transform: translateX(calc(100vw + 260px)) scaleX(-1); }
+      to   { transform: translateX(-260px) scaleX(-1); }
+    }
   }
 
   /* Gentle-motion only — never withhold the unlock celebration itself.
