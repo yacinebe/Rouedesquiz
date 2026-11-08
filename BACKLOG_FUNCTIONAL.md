@@ -34,6 +34,15 @@ Player-facing behavior & content, grouped into three themes. The fourth theme, *
 
 | ID | Item — what & why | Size | Priority | Depends on | Status |
 |----|-------------------|:----:|:--------:|-----------|:------:|
+| F-50 | **Jean Mermoz CPC mode** — I want to create a new mode to support my daughter progress every week base on her class (CP C at Jean Mermoz) curriculum
+
+So at the start, we can acess a different roulette that does not spin. So it is not a roulette more like options
+
+That for now includes 4 topics - Français, Math, Arabe and Anglais
+
+then the game play is the same 
+
+I will share the questions content in a different story | M | Med | — | Todo |
 | F-37 | **Merveilleux is consumed when played** — once she enters Mode Merveilleux after a 10-streak, the unlock is spent: leaving the mode locks it again and she must earn another 10 in a row. Keeps it a reward rather than a permanent shortcut (the secret parent shortcut stays, for showing it off). Shipped: leaving a Merveilleux run via any "back to wheel" control (quiz back, milestone return) relocks it and resets the streak to 0; staying in the mode across milestones ("Continuer") does not relock it; the secret parent shortcut is untouched. *(new — user request)* | S | Med | F-31 | Done |
 | F-10 | **Player profile + progress** — per-theme best scores, streaks, history that persists. Profiles + durable logging shipped; **progress page** (per-theme answered / accuracy / bonnes) and **live in-game score** under the player name shipped. *(idea #2, absorbs old F-06)* | M | Med | T-05 | In progress |
 | F-11 | **Rewards, stickers & avatar** — collectibles/avatar earned by playing; return-driver for a 5-year-old. *(my idea D-c)* | M | Med | F-10 | Todo |
