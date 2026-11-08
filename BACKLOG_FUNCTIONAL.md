@@ -34,6 +34,11 @@ Player-facing behavior & content, grouped into three themes. The fourth theme, *
 
 | ID | Item — what & why | Size | Priority | Depends on | Status |
 |----|-------------------|:----:|:--------:|-----------|:------:|
+| F-51 | **Jean Mermoz - CPC Mode** — A new mode separate from the roulette
+You can access from the home screen
+The goal is to cover every weeks question across 4 main categories - Français, Math, Arabe, Anglais
+This story is about build a nice welcome screen. Then by clicking on one of this 4, you access a set of question with similar structure and gameplay than the roulette
+start with blank question for now and I will add stories for each of the 4 themes | M | Med | — | Todo |
 | F-50 | **Jean Mermoz CPC mode** — I want to create a new mode to support my daughter progress every week base on her class (CP C at Jean Mermoz) curriculum
 
 So at the start, we can acess a different roulette that does not spin. So it is not a roulette more like options
