@@ -94,6 +94,17 @@ function titleOf(item) {
   return (bold ? bold[1] : item.split('—')[0]).replace(/\s+/g, ' ').trim();
 }
 
+// A table row is a single line: fold newlines into <br>, escape pipes, so a
+// multi-line description pasted into the panel can't break the table.
+function oneLine(text) {
+  return String(text || '')
+    .replace(/\r/g, '')
+    .replace(/\|/g, '\\|')                   // a literal pipe would end the cell
+    .split(/\n{2,}/).map(b => b.trim()).filter(Boolean).join('<br><br>')
+    .replace(/\n/g, '<br>')
+    .trim();
+}
+
 function rowLine(r) {
   return `| ${r.id} | ${r.item} | ${r.size} | ${r.priority} | ${r.depends} | ${r.status} |`;
 }
@@ -106,6 +117,7 @@ async function writeStory(which, id, fields, message) {
   if (idx === -1) throw new Error(`Story ${id} not found in ${file}`);
   const current = parseRows(text, which).find(r => r.id === id);
   const next = { ...current, ...fields, id };
+  if (next.item) next.item = oneLine(next.item);
   lines[idx] = rowLine(next);
   await gh(repoPath(`/contents/${file}`), {
     method: 'PUT',
@@ -140,7 +152,8 @@ async function createStory({ theme, title, description, size, priority, depends 
   const sep = lines.findIndex((l, i) => i > start && /^\|[-: |]+\|$/.test(l));
   if (sep === -1) throw new Error(`No table found under "${theme}"`);
 
-  const item = `**${title.trim()}**${description && description.trim() ? ` — ${description.trim()}` : ''}`;
+  const desc = oneLine(description);
+  const item = `**${oneLine(title)}**${desc ? ` — ${desc}` : ''}`;
   const row = { id, item, size: size || 'M', priority: priority || 'Med',
                 depends: (depends || '').trim() || '—', status: 'Todo' };
   lines.splice(sep + 1, 0, rowLine(row));
