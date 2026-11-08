@@ -154,17 +154,26 @@
 
 <script type="module">
 const $ = s => document.querySelector(s);
-let KEY = localStorage.getItem('backlogKey') || '';
+// Storage can be unavailable entirely (private windows, embedded contexts:
+// "Access to storage is not allowed from this context"). Every access goes
+// through these, and the panel works without storage — it just forgets.
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+let KEY = store.get('backlogKey') || '';
 let stories = [], pipeline = {}, open = new Set();
 
 // Text you have typed but not sent yet (brief, issue draft, refinement), kept
 // per story so the 30s refresh — or closing the tab — never eats it.
 const drafts = (() => {           // corrupt or blocked storage must never blank the page
-  try { return JSON.parse(localStorage.getItem('backlogDrafts') || '{}') || {}; }
-  catch { try { localStorage.removeItem('backlogDrafts'); } catch {} return {}; }
+  try { return JSON.parse(store.get('backlogDrafts') || '{}') || {}; }
+  catch { store.del('backlogDrafts'); return {}; }
 })();
 const draftOf = id => (drafts[id] = drafts[id] || {});
-const saveDrafts = () => { try { localStorage.setItem('backlogDrafts', JSON.stringify(drafts)); } catch {} };
+const saveDrafts = () => store.set('backlogDrafts', JSON.stringify(drafts));
 const clearDraft = (id, ...fields) => {
   fields.forEach(f => delete draftOf(id)[f]);
   if (!Object.keys(draftOf(id)).length) delete drafts[id];
@@ -244,7 +253,7 @@ $('#enter').addEventListener('click', async () => {
   KEY = $('#key').value.trim();
   try {
     await load();
-    localStorage.setItem('backlogKey', KEY);
+    store.set('backlogKey', KEY);     // kept in memory if storage is blocked
     $('#gate').hidden = true; $('#app').hidden = false;
   } catch (e) { $('#gateErr').textContent = e.message; }
 });
