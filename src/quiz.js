@@ -4,6 +4,7 @@ import { showScreen, launchConfetti, shuffle, unicornSVG } from './ui.js';
 import { fetchQuestions, logAttempt, logSession } from './db.js';
 import { getProfileId } from './profiles.js';
 import { SEGMENTS } from './segments.js';
+import { renderMathVisual } from './mathvisual.js';
 import { initTts, isTtsSupported, isTtsEnabled, setTtsEnabled, speakParts, stopSpeaking } from './tts.js';
 
 // Surprise draws from every other theme, in equal shares — each question
@@ -184,6 +185,8 @@ function renderQuestion() {
   // F-43 refinement (#20): Arabe questions are now fully Arabic text — display them right-to-left.
   questionTextEl.dir = isArabeQuestion(q) ? 'rtl' : 'ltr';
   questionTextEl.lang = isArabeQuestion(q) ? 'ar' : 'fr';
+
+  renderMathVisual(document.getElementById('mathVisual'), q.question);
 
   // Surprise mode: tag each question with the real theme it was drawn from.
   const originEl = document.getElementById('questionOrigin');
