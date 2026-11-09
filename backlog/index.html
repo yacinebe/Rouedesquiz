@@ -448,7 +448,7 @@ const sel = (f, opts, val) => `<select data-f="${f}">${opts.map(o =>
 // Rows store line breaks as <br>; show them as real newlines while editing
 // (the API folds them back on save).
 const unbr = t => (t || '').replace(/<br><br>/g, '\n\n').replace(/<br>/g, '\n');
-const esc = s = (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = s => (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ── interactions ──────────────────────────────────────────────────────
 $('#list').addEventListener('click', async e => {
