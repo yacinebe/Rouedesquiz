@@ -896,3 +896,23 @@
   .cpc-choice:hover, .cpc-choice:focus-visible { transform: scale(1.05); }
   .cpc-choice .cpc-emoji { font-size: 3rem; }
   .cpc-msg { min-height: 1.4em; font-family: 'Nunito', sans-serif; font-weight: 700; text-align: center; }
+
+  /* F-51 (#46): hideable dots picture for addition/subtraction questions */
+  .math-visual { margin: 0 auto 16px; text-align: center; }
+  .mv-toggle {
+    background: rgba(255,255,255,0.1); color: inherit; border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 0.9rem; cursor: pointer;
+  }
+  .mv-body {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 10px; margin-top: 10px;
+  }
+  .mv-ten {
+    display: grid; grid-template-columns: repeat(5, auto); gap: 4px; padding: 6px;
+    border: 2px solid #60AFFF; border-radius: 10px; background: rgba(96,175,255,0.12);
+  }
+  .mv-units { display: grid; grid-template-columns: repeat(5, auto); gap: 4px; padding: 6px; }
+  .mv-dot { width: 16px; height: 16px; border-radius: 50%; background: #FFE66D; display: block; position: relative; }
+  .mv-dot.gone { background: transparent; border: 2px dashed rgba(255,255,255,0.5); }
+  .mv-dot.gone::after { content: '✕'; position: absolute; inset: 0; font-size: 12px; line-height: 12px; text-align: center; color: #FF6B6B; }
+  .mv-op { font-size: 2rem; font-weight: 800; }
