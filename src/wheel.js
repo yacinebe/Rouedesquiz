@@ -3,6 +3,7 @@
 import { SEGMENTS } from './segments.js';
 import { launchConfetti } from './ui.js';
 import { startQuiz } from './quiz.js';
+import { playSound } from './audio.js';
 
 const N = SEGMENTS.length;
 const ARC = (2 * Math.PI) / N;
@@ -118,6 +119,7 @@ function spin() {
   spinning = true;
   document.getElementById('spinBtn').disabled = true;
   document.getElementById('resultArea').innerHTML = '';
+  playSound('spin');
 
   const totalDelta = (5 + Math.random() * 5) * 2 * Math.PI + Math.random() * 2 * Math.PI;
   const duration   = 4000 + Math.random() * 1500;
@@ -151,6 +153,7 @@ function spin() {
 }
 
 function showWheelResult(seg) {
+  playSound('land');
   const area = document.getElementById('resultArea');
   area.innerHTML = `
     <div class="result-card ${seg.cls}">
