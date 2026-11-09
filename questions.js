@@ -980,7 +980,8 @@ window.QUIZ_DATA = {
 
   // Jean Mermoz CPC — Maths (F-51). Text-only, no images yet.
   // 20x add/sub in 10-20, then 10x tens (+10, +12) incl. 4 euro coin/bill questions.
-  'mermoz-math': [
+  // Theme key must match CPC_SEGMENTS in src/segments.js (F-50).
+  cpc_math: [
     { id: 'mermoz-math-001', difficulty: 2, question: 'Combien font 10 + 3 ?', options: ['12', '13', '14', '15'], answer: '13' },
     { id: 'mermoz-math-002', difficulty: 2, question: 'Combien font 11 + 4 ?', options: ['14', '15', '16', '17'], answer: '15' },
     { id: 'mermoz-math-003', difficulty: 2, question: 'Combien font 12 + 5 ?', options: ['16', '17', '18', '19'], answer: '17' },
