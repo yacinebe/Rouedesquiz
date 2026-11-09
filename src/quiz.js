@@ -36,16 +36,22 @@ let sessionStreak = 0;
 let merveilleuxUnlocked = false;
 
 export async function startQuiz(seg) {
-  if (!seg) return;
+  if (!seg) return false;
   const pool = seg.cls === 'surprise' ? await buildSurprisePool() : await fetchThemePool(seg.cls);
   if (!pool || pool.length === 0) {
+    // F-50: CPC choices show their own "bientôt" message on their screen.
+    if (isCpcTheme(seg.cls)) return false;
     document.getElementById('resultArea').innerHTML =
       `<div class="result-card ${seg.cls}"><div class="rc-top"><span>Aucune question pour ce thème 😅</span></div></div>`;
-    return;
+    return false;
   }
   beginRun({ theme: seg.cls, label: seg.label, color: seg.color,
              emoji: seg.emoji, cls: seg.cls, pool, endless: true });
+  return true;
 }
+
+// F-50: Jean Mermoz CP C themes (cpc_*) return to their own menu, not the wheel.
+function isCpcTheme(cls) { return typeof cls === 'string' && cls.startsWith('cpc_'); }
 
 // DB first (Supabase), fall back to the static questions.js bank (offline-safe).
 async function fetchThemePool(cls) {
@@ -80,6 +86,12 @@ export function beginRun({ theme, label, color, emoji, cls, pool, endless: isEnd
   badge.style.borderColor = color;
   document.getElementById('quizScreen').classList.toggle('merveilleux-mode', cls === 'merveilleux');
 
+  // F-50: the "back" controls lead to the CPC menu for cpc_* runs.
+  const cpc = isCpcTheme(cls);
+  document.querySelector('#quizScreen .back-btn').textContent = cpc ? '← Choix' : '← Roue';
+  document.querySelector('#milestoneScreen [data-action="wheel"]').textContent =
+    cpc ? '📚 Retour aux choix' : '🎡 Retour à la roue';
+
   setBadgeScore();
   showScreen('quizScreen');
   currentQ = drawNext();
@@ -110,7 +122,7 @@ function setBadgeScore() {
 // they're read entirely with an Arabic voice/lang — labels included —
 // instead of only the embedded word.
 function isArabeQuestion(q) {
-  return !!q && (runTheme === 'arabe' || (q.origin && q.origin.cls === 'arabe'));
+  return !!q && (runTheme === 'arabe' || runTheme === 'cpc_arabe' || (q.origin && q.origin.cls === 'arabe'));
 }
 
 // Emoji have no spoken form in Arabic (or any language) — an Arabic voice
@@ -374,7 +386,7 @@ export function goToWheel() {
   // has to earn a fresh 10-streak. The secret cheat is untouched: it forces
   // merveilleuxUnlocked back to true on demand, regardless of this reset.
   if (runTheme === 'merveilleux') relockMerveilleux();
-  showScreen('wheelScreen');
+  showScreen(isCpcTheme(runTheme) ? 'cpcScreen' : 'wheelScreen');
 }
 
 function relockMerveilleux() {

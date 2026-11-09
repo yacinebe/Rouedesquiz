@@ -5,6 +5,7 @@ import { initQuiz } from './quiz.js';
 import { initProgress } from './progress.js';
 import { initLeaderboard } from './leaderboard.js';
 import { initProfiles } from './profiles.js';
+import { initCpc } from './cpc.js';
 import { initAuth } from './auth.js';
 
 initWheel();       // draws the wheel, wires spin + slice-click
@@ -12,6 +13,7 @@ initQuiz();        // wires next / continue / back-to-wheel
 initProgress();    // wires the "Mes progrès" button
 initLeaderboard(); // wires the "Classement" button
 initProfiles();    // wires the profile picker (create form, manage, badge)
+initCpc();         // wires the Jean Mermoz CP C menu (F-50)
 initAuth();        // routes to welcome or profiles; wires sign in / up / out
 
 // Signals to the file:// fallback (in index.html) that the app loaded.
