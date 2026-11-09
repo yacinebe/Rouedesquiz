@@ -976,5 +976,40 @@ window.QUIZ_DATA = {
     { id: 'mv-048', difficulty: 3, question: 'Que fait un dragon gentil pour aider ses amis pendant une fête ?', options: ['Il transporte les invités en volant ou allume les bougies avec son souffle', 'Il casse le château', 'Il mange le gâteau tout seul', 'Il s\'enfuit'], answer: 'Il transporte les invités en volant ou allume les bougies avec son souffle' },
     { id: 'mv-049', difficulty: 3, question: 'Pourquoi dit-on qu\'une licorne est un animal « magique » et pas un simple cheval ?', options: ['Parce qu\'elle a une corne et des pouvoirs magiques dans les histoires', 'Parce qu\'elle est plus grande qu\'un cheval', 'Parce qu\'elle court plus vite', 'Parce qu\'elle est grise'], answer: 'Parce qu\'elle a une corne et des pouvoirs magiques dans les histoires' },
     { id: 'mv-050', difficulty: 3, question: 'Que fait-on juste après avoir chanté « Joyeux anniversaire » et soufflé les bougies ?', options: ['On mange le gâteau', 'On va se coucher', 'On range la maison', 'On part à l\'école'], answer: 'On mange le gâteau' }
+  ],
+
+  // Jean Mermoz CPC — Maths (F-51). Text-only, no images yet.
+  // 20x add/sub in 10-20, then 10x tens (+10, +12) incl. 4 euro coin/bill questions.
+  'mermoz-math': [
+    { id: 'mermoz-math-001', difficulty: 2, question: 'Combien font 10 + 3 ?', options: ['12', '13', '14', '15'], answer: '13' },
+    { id: 'mermoz-math-002', difficulty: 2, question: 'Combien font 11 + 4 ?', options: ['14', '15', '16', '17'], answer: '15' },
+    { id: 'mermoz-math-003', difficulty: 2, question: 'Combien font 12 + 5 ?', options: ['16', '17', '18', '19'], answer: '17' },
+    { id: 'mermoz-math-004', difficulty: 2, question: 'Combien font 14 + 2 ?', options: ['15', '16', '17', '18'], answer: '16' },
+    { id: 'mermoz-math-005', difficulty: 2, question: 'Combien font 13 + 6 ?', options: ['18', '19', '20', '21'], answer: '19' },
+    { id: 'mermoz-math-006', difficulty: 2, question: 'Combien font 15 + 3 ?', options: ['17', '18', '19', '20'], answer: '18' },
+    { id: 'mermoz-math-007', difficulty: 2, question: 'Combien font 16 + 2 ?', options: ['17', '18', '19', '20'], answer: '18' },
+    { id: 'mermoz-math-008', difficulty: 2, question: 'Combien font 17 + 3 ?', options: ['19', '20', '21', '22'], answer: '20' },
+    { id: 'mermoz-math-009', difficulty: 2, question: 'Combien font 10 + 7 ?', options: ['16', '17', '18', '19'], answer: '17' },
+    { id: 'mermoz-math-010', difficulty: 2, question: 'Combien font 12 + 8 ?', options: ['19', '20', '21', '22'], answer: '20' },
+    { id: 'mermoz-math-011', difficulty: 2, question: 'Combien font 20 - 3 ?', options: ['16', '17', '18', '19'], answer: '17' },
+    { id: 'mermoz-math-012', difficulty: 2, question: 'Combien font 19 - 2 ?', options: ['16', '17', '18', '19'], answer: '17' },
+    { id: 'mermoz-math-013', difficulty: 2, question: 'Combien font 18 - 4 ?', options: ['13', '14', '15', '16'], answer: '14' },
+    { id: 'mermoz-math-014', difficulty: 2, question: 'Combien font 17 - 5 ?', options: ['11', '12', '13', '14'], answer: '12' },
+    { id: 'mermoz-math-015', difficulty: 2, question: 'Combien font 16 - 6 ?', options: ['9', '10', '11', '12'], answer: '10' },
+    { id: 'mermoz-math-016', difficulty: 2, question: 'Combien font 15 - 2 ?', options: ['12', '13', '14', '15'], answer: '13' },
+    { id: 'mermoz-math-017', difficulty: 2, question: 'Combien font 14 - 3 ?', options: ['10', '11', '12', '13'], answer: '11' },
+    { id: 'mermoz-math-018', difficulty: 2, question: 'Combien font 20 - 5 ?', options: ['14', '15', '16', '17'], answer: '15' },
+    { id: 'mermoz-math-019', difficulty: 2, question: 'Combien font 18 - 8 ?', options: ['9', '10', '11', '12'], answer: '10' },
+    { id: 'mermoz-math-020', difficulty: 2, question: 'Combien font 13 - 1 ?', options: ['11', '12', '13', '14'], answer: '12' },
+    { id: 'mermoz-math-021', difficulty: 2, question: 'Combien font 20 + 10 ?', options: ['20', '29', '30', '40'], answer: '30' },
+    { id: 'mermoz-math-022', difficulty: 2, question: 'Combien font 22 + 10 ?', options: ['22', '31', '32', '42'], answer: '32' },
+    { id: 'mermoz-math-023', difficulty: 2, question: 'Combien font 31 + 10 ?', options: ['31', '40', '41', '51'], answer: '41' },
+    { id: 'mermoz-math-024', difficulty: 2, question: 'Combien font 25 + 10 ?', options: ['25', '34', '35', '45'], answer: '35' },
+    { id: 'mermoz-math-025', difficulty: 2, question: 'Combien font 22 + 12 ?', options: ['24', '33', '34', '44'], answer: '34' },
+    { id: 'mermoz-math-026', difficulty: 2, question: 'Combien font 23 + 11 ?', options: ['24', '33', '34', '44'], answer: '34' },
+    { id: 'mermoz-math-027', difficulty: 2, question: 'Tu as un billet de 10 € et une pièce de 2 €. Combien d\'euros as-tu ?', options: ['10', '11', '12', '13'], answer: '12' },
+    { id: 'mermoz-math-028', difficulty: 2, question: 'Tu as une pièce de 2 € et une pièce de 1 €. Combien d\'euros as-tu ?', options: ['2', '3', '4', '12'], answer: '3' },
+    { id: 'mermoz-math-029', difficulty: 2, question: 'Tu as deux pièces de 2 €. Combien d\'euros as-tu ?', options: ['2', '3', '4', '22'], answer: '4' },
+    { id: 'mermoz-math-030', difficulty: 2, question: 'Quelle est la plus grande valeur : une pièce de 1 €, une pièce de 2 € ou un billet de 10 € ?', options: ['La pièce de 1 €', 'La pièce de 2 €', 'Le billet de 10 €', 'Elles sont pareilles'], answer: 'Le billet de 10 €' }
   ]
 };
