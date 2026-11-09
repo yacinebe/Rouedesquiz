@@ -7,7 +7,7 @@ export function showScreen(id) {
   // once a player (or guest) has been chosen so the name is populated.
   const cp = document.getElementById('currentPlayer');
   if (cp) {
-    const onPlay = id === 'wheelScreen' || id === 'quizScreen' || id === 'milestoneScreen';
+    const onPlay = id === 'wheelScreen' || id === 'cpcScreen' || id === 'quizScreen' || id === 'milestoneScreen';
     const named = cp.querySelector('.cp-name').textContent;
     cp.style.display = (onPlay && named) ? 'flex' : 'none';
   }
